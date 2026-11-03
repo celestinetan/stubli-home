@@ -1,0 +1,7 @@
+node_modules
+dist
+.dev.vars
+.wrangler
+
+# Demo page build (published from the public repository only)
+docs

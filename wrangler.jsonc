@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stubli-home",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/auth/*", "/pair", "/health"]
+  },
+  // Created automatically on the first deploy.
+  "kv_namespaces": [{ "binding": "KV" }],
+  "triggers": {
+    // news (first half) | news (second half + stories) | calendar | weather — spread out to stay within free-plan limits
+    "crons": ["*/15 * * * *", "2,17,32,47 * * * *", "5,20,35,50 * * * *", "10,25,40,55 * * * *"]
+  },
+  "observability": { "enabled": true }
+}

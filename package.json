@@ -1,0 +1,23 @@
+{
+  "name": "stubli-home",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev:web": "vite",
+    "dev": "vite build && wrangler dev",
+    "deploy": "vite build && wrangler deploy",
+    "build:demo": "VITE_DEMO=1 vite build --base=./ --outDir docs --emptyOutDir && touch docs/.nojekyll"
+  },
+  "dependencies": {
+    "hono": "^4.13.16",
+    "preact": "^11.1.1",
+    "uqr": "^0.1.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261102.1",
+    "@preact/preset-vite": "^2.10.6",
+    "vite": "^8.3.5",
+    "wrangler": "^4.156.2"
+  }
+}
