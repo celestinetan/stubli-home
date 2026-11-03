@@ -12,9 +12,10 @@
   // Created automatically on the first deploy.
   "kv_namespaces": [{ "binding": "KV" }],
   "triggers": {
-    // One schedule for everything: the free plan allows only 5 per account. Each quarter hour,
-    // minute :00 collects half the news, :02 the rest, :05 the calendar (events hourly), :10 the weather.
-    "crons": ["0,2,5,10,15,17,20,25,30,32,35,40,45,47,50,55 * * * *"]
+    // One schedule for everything: the free plan allows only 5 per account. News every half hour
+    // (:00 and :30 collect half the feeds, :02 and :32 the rest), calendar and weather every quarter
+    // hour (:05, :10), events hourly. About 360 storage writes a day, well under the free 1,000.
+    "crons": ["0,2,5,10,20,25,30,32,35,40,50,55 * * * *"]
   },
   "observability": { "enabled": true }
 }

@@ -18,7 +18,7 @@ const SOURCES = {
   calendar: { every: 15, module: 'yourDay', run: (env: Env) => refreshSlot(env, 'calendar', () => fetchCalendar(env)) },
   events: { every: 60, module: 'whatsOn', run: (env: Env) => refreshSlot(env, 'events', () => fetchEvents(env)) },
   local: { every: 360, module: 'yourDay', run: (env: Env) => refreshSlot(env, 'local', () => fetchLocal()) },
-  news: { every: 15, module: 'news', run: (env: Env) => refreshSlot(env, 'news', (prev: any) => fetchNews(env, prev)) },
+  news: { every: 30, module: 'news', run: (env: Env) => refreshSlot(env, 'news', (prev: any) => fetchNews(env, prev)) },
 } as const
 const enabled = (k: SourceKey) => config.modules[SOURCES[k].module] !== false
 type SourceKey = keyof typeof SOURCES
@@ -364,11 +364,12 @@ export default {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
     await applySettings(env)
     // A single schedule (the free plan allows only 5 per account), split by the minute it fires.
-    // News is collected in two halves (see news.ts): the first at :00, the rest and the stories at :02.
+    // News is collected in two halves (see news.ts): the first at :00/:30, the rest and the stories at :02/:32.
+    // News runs half-hourly to keep storage writes well under the free plan's 1,000 a day.
     const minute = new Date(event.scheduledTime).getUTCMinutes()
     const slot = minute % 15
-    if (slot === 0) { if (enabled('news')) ctx.waitUntil(collectNewsBatch(env, 0).then(() => {})); return }
-    const which: SourceKey | undefined = slot === 2 ? 'news' : slot === 5 ? 'calendar' : slot === 10 ? 'weather' : undefined
+    if (minute % 30 === 0) { if (enabled('news')) ctx.waitUntil(collectNewsBatch(env, 0).then(() => {})); return }
+    const which: SourceKey | undefined = minute % 30 === 2 ? 'news' : slot === 5 ? 'calendar' : slot === 10 ? 'weather' : undefined
     if (which && enabled(which)) ctx.waitUntil(SOURCES[which].run(env))
     // Events ride along with the calendar run once an hour.
     if (minute === 20 && enabled('events')) ctx.waitUntil(SOURCES.events.run(env))

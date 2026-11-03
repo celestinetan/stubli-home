@@ -42,7 +42,10 @@ const MAX_ERRORS = 40
 
 export async function logError(env: Env, source: string, message: string) {
   const list = (await env.KV.get<any[]>('errors', 'json')) ?? []
-  list.unshift({ at: Date.now(), source, message: message.slice(0, 500) })
+  // The same error again within the hour isn't written: storage writes are limited on the free plan.
+  const text = message.slice(0, 500)
+  if (list[0]?.message === text && list[0]?.source === source && Date.now() - list[0].at < 3600_000) return
+  list.unshift({ at: Date.now(), source, message: text })
   await env.KV.put('errors', JSON.stringify(list.slice(0, MAX_ERRORS)))
 }
 
