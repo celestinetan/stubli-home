@@ -363,13 +363,14 @@ export default {
   fetch: app.fetch,
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
     await applySettings(env)
-    if (event.cron === '*/15 * * * *' && !enabled('news')) return
-    // News is collected in two halves (see news.ts): first half at :00/:15/:30/:45, rest + stories two minutes later.
-    if (event.cron === '*/15 * * * *') return ctx.waitUntil(collectNewsBatch(env, 0).then(() => {}))
-    const which: SourceKey | undefined =
-      event.cron === '2,17,32,47 * * * *' ? 'news' : event.cron === '5,20,35,50 * * * *' ? 'calendar' : event.cron === '10,25,40,55 * * * *' ? 'weather' : undefined
+    // A single schedule (the free plan allows only 5 per account), split by the minute it fires.
+    // News is collected in two halves (see news.ts): the first at :00, the rest and the stories at :02.
+    const minute = new Date(event.scheduledTime).getUTCMinutes()
+    const slot = minute % 15
+    if (slot === 0) { if (enabled('news')) ctx.waitUntil(collectNewsBatch(env, 0).then(() => {})); return }
+    const which: SourceKey | undefined = slot === 2 ? 'news' : slot === 5 ? 'calendar' : slot === 10 ? 'weather' : undefined
     if (which && enabled(which)) ctx.waitUntil(SOURCES[which].run(env))
-    // Events ride along with the calendar run once an hour (the free plan allows only a few schedules).
-    if (event.cron === '5,20,35,50 * * * *' && new Date().getUTCMinutes() === 20) if (enabled('events')) ctx.waitUntil(SOURCES.events.run(env))
+    // Events ride along with the calendar run once an hour.
+    if (minute === 20 && enabled('events')) ctx.waitUntil(SOURCES.events.run(env))
   },
 } satisfies ExportedHandler<Env>

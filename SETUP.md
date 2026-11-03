@@ -70,4 +70,5 @@ Then run `npm run deploy`, or push to your GitHub copy if you deployed with the 
 
 - About 50 outbound requests per run: news is collected in two halves a few minutes apart.
 - Gemini runs at most every 30 minutes and streams its answer (long answers otherwise time out).
-- Four schedules: news (two), calendar plus events, and weather. Cloudflare allows five.
+- One schedule that fires 16 times an hour and does a different job each time (news in two halves,
+  calendar plus events, weather). The free plan allows only five schedules per account, shared by all your workers.

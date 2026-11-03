@@ -12,8 +12,9 @@
   // Created automatically on the first deploy.
   "kv_namespaces": [{ "binding": "KV" }],
   "triggers": {
-    // news (first half) | news (second half + stories) | calendar | weather — spread out to stay within free-plan limits
-    "crons": ["*/15 * * * *", "2,17,32,47 * * * *", "5,20,35,50 * * * *", "10,25,40,55 * * * *"]
+    // One schedule for everything: the free plan allows only 5 per account. Each quarter hour,
+    // minute :00 collects half the news, :02 the rest, :05 the calendar (events hourly), :10 the weather.
+    "crons": ["0,2,5,10,15,17,20,25,30,32,35,40,45,47,50,55 * * * *"]
   },
   "observability": { "enabled": true }
 }

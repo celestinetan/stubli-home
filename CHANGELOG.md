@@ -15,3 +15,5 @@
 - Optional Sonos and Philips Hue control.
 - Settings on the dashboard itself; light, paper and dark looks.
 - New dashboards are locked until a device is paired with a code.
+- One schedule instead of four, so it fits alongside other projects on Cloudflare's free plan.
+- An "Update Stubli Home" button (GitHub Actions) brings a copy up to date.

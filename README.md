@@ -49,18 +49,20 @@ add `?demo` to the address to see the same.)
 
    [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/celestinetan/stubli-home)
 
-2. Sign in to Cloudflare and GitHub when asked, and keep the suggested names.
-3. If you're asked for `PAIRING_SECRET`, type a code of at least 8 characters that you'll remember.
-   You'll type it once on each device that should show the dashboard.
+2. Sign in to Cloudflare. Under **Git account**, choose **New GitHub connection** and allow
+   Cloudflare on GitHub (it needs this to make your own copy of the code and redeploy it when it
+   changes). If you land on a "Select a repository" page afterwards, just click the Deploy button
+   above again. Keep the suggested names.
+3. Under **PAIRING_SECRET**, type a code of at least 8 characters that you'll remember (it's
+   required). You'll type it once on each device that should show the dashboard.
+   Ticking **Create private Git repository** keeps your copy of the code private; that's fine.
 4. Click **Deploy** and wait about two minutes. Cloudflare then shows your dashboard's address,
    ending in `.workers.dev`. Write it down.
 
 ### 2. Pair your tablet
 
 1. On the tablet, open the address in Safari (iPad) or Chrome (Android).
-2. Type your pairing code and tap **Pair device**. If you didn't choose one in step 1, the page
-   asks you to choose one now. Do this straight away, because the first person to open a new
-   dashboard sets the code.
+2. Type your pairing code from step 1 and tap **Pair device**.
 3. Write the code down somewhere safe. You'll need it for every tablet or phone, and again on an
    iPad after adding Stubli Home to the home screen (that icon keeps its own sign-in).
 
@@ -114,8 +116,13 @@ Tip: a smart plug that charges the tablet only a few hours a day helps an old ba
 
 ### Getting updates
 
-On GitHub, open your copy of the project and click **Sync fork**. Cloudflare redeploys it by itself
-within a few minutes. Your settings, calendars and keys are kept.
+1. On GitHub, open your copy of Stubli Home (the repository the Deploy button made for you).
+2. Click **Actions**, then **Update Stubli Home**, then **Run workflow**. If GitHub asks to enable
+   workflows first, allow it.
+3. Cloudflare redeploys your dashboard by itself within a few minutes.
+
+Your settings, calendars and keys are kept: they live in Cloudflare, not in the code. The
+[changelog](CHANGELOG.md) says what's new.
 
 ## If something isn't working
 
@@ -132,6 +139,7 @@ within a few minutes. Your settings, calendars and keys are kept.
 | **Something stopped updating** | Settings, General, **Health and errors** shows when each part last updated and any recent problems. **Reload dashboard** often fixes a stuck screen. |
 | **"This one can't play here"** in the music player | That song's owner only allows it on YouTube itself. In a playlist it's skipped by itself; for a single song, try another upload of it. |
 | **Music stops when the screen locks** | Keep the screen on (see above). Tablets pause web audio when they lock. |
+| **The deploy failed with "limit of 5 cron triggers"** | Your Cloudflare account already uses its five free schedules for other projects. Stubli Home needs one: remove a schedule from another worker (its Settings, Triggers), then click **Retry build**. |
 | **The screen goes dark or locks** | iPad: Auto-Lock: Never. Android: the longest screen timeout, or "Stay awake" while charging. |
 
 Still stuck? [Open an issue](../../issues) or write to hello@celestinetan.com.
