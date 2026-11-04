@@ -42,8 +42,10 @@ export function artUrl(src: string | null | undefined, find: { artist?: string; 
 // Households and favourites rarely change; cache them in the isolate for a few minutes.
 let cache: { at: number; household: string; favorites: any[]; playlists: any[] } | null = null
 
-async function household(env: Env) {
-  if (cache && Date.now() - cache.at < 10 * 60_000) return cache
+// `fresh` (the music panel opening) reloads them unless they were loaded in the last 15 seconds,
+// so a favourite or playlist just added in the Sonos app shows up straight away.
+async function household(env: Env, fresh = false) {
+  if (cache && Date.now() - cache.at < (fresh ? 15_000 : 3 * 60_000)) return cache
   const h = await call(env, '/households')
   const id = h.households?.[0]?.id
   if (!id) throw new Error('No Sonos household found')
@@ -62,10 +64,10 @@ async function household(env: Env) {
   return cache
 }
 
-export async function sonosState(env: Env) {
+export async function sonosState(env: Env, fresh = false) {
   if (!env.SONOS_CLIENT_ID) return { configured: false, connected: false }
   if (!(await getToken(env, sonosProvider))) return { configured: true, connected: false }
-  const h = await household(env)
+  const h = await household(env, fresh)
   const g = await call(env, `/households/${h.household}/groups`)
   const players = new Map<string, string>((g.players ?? []).map((p: any) => [p.id, p.name]))
   const groups = await Promise.all((g.groups ?? []).map(async (grp: any) => {

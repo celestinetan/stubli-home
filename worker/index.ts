@@ -295,7 +295,7 @@ const fail = (c: any, e: unknown) => {
 }
 
 app.get('/api/art', (c) => artResponse(c.req.query('u'), c.req.query('q'), c.req.query('kind')).catch(() => new Response(null, { status: 404 })))
-app.get('/api/sonos', async (c) => { if (config.modules.music === false) return c.json({ configured: false, connected: false }); try { return c.json(await sonosState(c.env)) } catch (e) { return fail(c, e) } })
+app.get('/api/sonos', async (c) => { if (config.modules.music === false) return c.json({ configured: false, connected: false }); try { return c.json(await sonosState(c.env, c.req.query('fresh') === '1')) } catch (e) { return fail(c, e) } })
 app.post('/api/sonos/:group/:action', async (c) => {
   try {
     await sonosAction(c.env, c.req.param('group'), c.req.param('action'), await c.req.json().catch(() => ({})))

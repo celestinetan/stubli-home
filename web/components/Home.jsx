@@ -67,7 +67,9 @@ export function useHome(sheetOpen) {
     if (fav) remember('favorite', fav)
     else if (list) remember('playlist', { ...list, image: group.art, description: 'Sonos playlist' })
   }, [source, group?.state])
-  return { sonos, hue, group, groups, pick, sonosDo, hueDo, busy, recents, remember }
+  // Opening the music panel fetches favourites and playlists afresh (see worker/sonos.ts).
+  const refreshSonos = () => api('/api/sonos?fresh=1').then(setSonos).catch(() => {})
+  return { sonos, hue, group, groups, pick, sonosDo, hueDo, busy, recents, remember, refreshSonos }
 }
 
 const playing = (g) => g?.state === 'PLAYBACK_STATE_PLAYING' || g?.state === 'PLAYBACK_STATE_BUFFERING'
@@ -150,7 +152,8 @@ const mmss = (ms) => (ms == null ? '' : `${Math.floor(ms / 60000)}:${String(Math
 // tablet: music that plays on the tablet itself (YouTube links from Settings → Music), offered as a
 // third tab beside the Sonos favourites and playlists.
 export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
-  const { sonos, group, groups, pick, sonosDo, busy, recents, remember } = home
+  const { sonos, group, groups, pick, sonosDo, busy, recents, remember, refreshSonos } = home
+  useEffect(() => { refreshSonos() }, [])
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState(() => (recents.length ? 'recent' : 'favourites'))
   const q = query.trim().toLowerCase()
