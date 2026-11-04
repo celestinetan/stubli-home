@@ -920,6 +920,17 @@ button[disabled] { opacity: 0.4; }
   100% { opacity: 0; transform: translate(6px, -26px) rotate(10deg) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) { .notes { display: none; } }
+/* Between songs: a phone, book or cup in hand, and z's drifting up while one dozes off. */
+.dancer .prop { stroke-width: 1.5; }
+.dancer .prop rect, .dancer .prop path:first-child { fill: var(--surface); }
+.dancer .zz text { font: 700 7px var(--sans); fill: var(--muted); stroke: none; opacity: 0; transform-box: fill-box; animation: zz 3s ease-out infinite; }
+.dancer .zz text + text { font-size: 9px; animation-delay: 1.5s; }
+@keyframes zz {
+  0% { opacity: 0; transform: translate(0, 3px); }
+  30% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(3px, -7px); }
+}
+@media (prefers-reduced-motion: reduce) { .dancer .zz text { animation: none; opacity: 0.7; } }
 
 .setup-choice { display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; background: var(--surface-2); margin-top: 10px; }
 .setup-choice h3 { margin: 0; font-size: var(--fs-3); color: var(--ink); }

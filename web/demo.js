@@ -145,9 +145,18 @@ const sonos = {
   playlists: [],
 }
 
+// `?pastime=…` previews the figures between songs, so the demo starts paused.
+if (new URLSearchParams(location.search).has('pastime')) sonos.groups[0].state = 'PLAYBACK_STATE_PAUSED'
+
 // Answers the dashboard's requests from the sample data above.
 export async function demoApi(path, opts = {}) {
   const p = path.split('?')[0]
+  // Play and pause work in the demo, so visitors can see what the figures do between songs.
+  if (p.endsWith('/toggle') && p.startsWith('/api/sonos/')) {
+    const g = sonos.groups[0]
+    g.state = g.state === 'PLAYBACK_STATE_PLAYING' ? 'PLAYBACK_STATE_PAUSED' : 'PLAYBACK_STATE_PLAYING'
+    return { ok: true }
+  }
   if ((opts.method ?? 'GET') !== 'GET') {
     window.dispatchEvent(new CustomEvent('toast', { detail: "This is the demo: nothing was changed." }))
     return { ok: true }

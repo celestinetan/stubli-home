@@ -2,6 +2,7 @@
 
 ## 1.1 – 4 November 2026
 
+- Between songs the stick figures get on with other things: scrolling a phone, reading, sipping a coffee, stretching, waiting with hands on hips, checking the time or dozing off with a few z's. The music notes show only while music plays. In the demo, play and pause work, and `?pastime=read` (or phone, sleep, coffee, stretch, wait, watch) previews one.
 - Sonos uses far fewer requests (Sonos allows 20,000 a day): it checks every 30 seconds while music plays, every minute otherwise, and rereads idle speakers only when they change. If the limit is reached it pauses, keeps the last state on screen and says so.
 - Music, two ways: YouTube Music on the tablet is now a step in setup and has its own place on the bar (with the dancers), next to Sonos.
 - Easier to fit any city: venues carry their own location, and nearby-only sources (free days, venues, Kultur Züri) appear only within 100 km. "Make it yours" in the README explains how to add your city.
