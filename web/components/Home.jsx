@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'preact/hooks'
 import { api, report, store } from '../lib.js'
+import { Dancers } from './Dancers.jsx'
 import { Play, Pause, Next, Prev, Close, Bulb, Power, Music, Shuffle, Speaker, SpeakerOff, Minus, Plus } from './icons.jsx'
 
 // ---------- data ----------
@@ -92,6 +93,7 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
             <>
               {/* The whole now-playing area opens the music panel. */}
               <button class="np-open" onClick={onMusic} aria-label="Open music">
+                <Dancers on={playing(group)} />
                 <span class="np-text">
                   <Marquee class="np-title" text={group.title || 'Nothing playing'} run={playing(group)} />
                   <span class="np-room">{playing(group) ? '' : 'Paused · '}{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
@@ -389,24 +391,23 @@ function Slider({ value, onCommit, label, min = 0 }) {
 }
 
 // Text that slowly scrolls back and forth only when it doesn't fit (e.g. long song titles).
-// The song title in the bottom bar. While music plays it scrolls slowly in a loop, which is how
-// the bar shows that something's on; paused, it stands still (cut short with "…" if too long).
-// With Reduce Motion on, it never moves.
+// The song title in the bottom bar. A title that doesn't fit scrolls slowly in a loop while
+// music plays; one that fits just stands still. With Reduce Motion on, it never moves.
 function Marquee({ text, class: cls, run }) {
   const box = useRef(null)
   const inner = useRef(null)
   const [size, setSize] = useState({ w: 0, box: 0 })
   useEffect(() => {
-    const measure = () => setSize({ w: inner.current?.offsetWidth ?? 0, box: box.current?.clientWidth ?? 0 })
+    const measure = () => setSize({ w: inner.current?.scrollWidth ?? 0, box: box.current?.clientWidth ?? 0 })
     measure()
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
   }, [text, run])
-  // The gap after the title is as wide as the space it scrolls in, so only one copy shows at a time.
-  const gap = Math.max(48, size.box - size.w + 48)
+  const scroll = run && size.w > size.box + 2
+  const gap = 56
   return (
-    <span class={`${cls} marquee ${run ? 'running' : ''}`} ref={box} title={text}>
-      {run ? (
+    <span class={`${cls} marquee ${scroll ? 'running' : ''}`} ref={box} title={text}>
+      {scroll ? (
         <span class="marquee-track" style={{ '--gap': `${gap}px`, '--dur': `${Math.max(8, (size.w + gap) / 32)}s` }}>
           <span ref={inner}>{text}</span><span aria-hidden="true">{text}</span>
         </span>

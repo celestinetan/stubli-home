@@ -6,7 +6,7 @@ import { Setup } from './components/Setup.jsx'
 import { DEMO, PROJECT_URL } from './demo.js'
 import { Ticker } from './components/Ticker.jsx'
 import { Header, AdviceStrip } from './components/Header.jsx'
-import { Ambient, useIdle } from './components/Ambient.jsx'
+import { useIdle } from './components/Idle.js'
 import { Agenda } from './components/Agenda.jsx'
 import { WhatsOn } from './components/WhatsOn.jsx'
 import { Settings } from './components/Settings.jsx'
@@ -130,10 +130,12 @@ function App() {
   const hour = Math.floor(now / 3600_000)
   const shift = { '--shift-x': `${[0, 2, -2, 1, -1, 3][hour % 6]}px`, '--shift-y': `${[0, -1, 1, 2, -2, 0][hour % 6]}px` }
 
-  // After a while without a touch, a calm screen with just the essentials (Settings → General).
-  // ?calm shows it straight away, to preview it.
-  const idle = useIdle((dash?.settings?.ambientMinutes ?? 10) * 60_000) || new URLSearchParams(window.location.search).has('calm')
+  // After a while without a touch, the whole dashboard dims (Settings → General); a touch
+  // brightens it. ?dim previews it.
+  const idleMs = (dash?.settings?.ambientMinutes ?? 10) * 60_000
+  const idle = (useIdle(idleMs) && idleMs > 0) || new URLSearchParams(window.location.search).has('dim')
   const anyOpen = !!(story || category || sheet || settings || setup)
+  useEffect(() => { document.documentElement.toggleAttribute('data-idle', idle && !anyOpen) }, [idle, anyOpen])
 
   const sleepCfg = dash?.settings?.sleep
   const sleeping = (forceSleep || (sleepCfg && inWindow(minutesNow(now), toMinutes(sleepCfg.start), toMinutes(sleepCfg.end)))) && Date.now() > wokenUntil
@@ -177,9 +179,6 @@ function App() {
       {sheet === 'lights' && <LightsSheet home={home} closing={closing} onClose={closeSheet} />}
       {setup && <Setup onSaved={load} onDone={() => { setSetup(false); load() }} />}
       {settings && <Settings onClose={() => setSettings(false)} onSaved={load} textSize={textSize} setTextSize={setTextSize} />}
-      {idle && !anyOpen && !sleeping && dash?.settings?.ambientMinutes !== 0 && (
-        <Ambient now={now} weather={mods.weather !== false ? dash?.weather?.data : null} calendar={dash?.calendar?.data} place={place} />
-      )}
       {sleeping && (
         <button class="sleep" onClick={wake} aria-label="Wake screen">
           <span>{fmtTime(now)}</span>

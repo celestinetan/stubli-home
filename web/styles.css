@@ -779,24 +779,10 @@ button:not([disabled]):active, a.btn:active { transform: scale(0.97); }
 button[disabled] { opacity: 0.4; }
 
 /* Night: the whole screen a step dimmer, easy in a dark room. */
-:root[data-theme='night'] .app { filter: brightness(0.82); }
-
-/* Calm screen after a while without a touch (see Ambient.jsx). */
-.ambient {
-  position: fixed; inset: 0; z-index: 18; background: var(--bg); color: var(--ink);
-  display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; padding: 40px;
-  animation: fade 1.2s ease-out;
-}
-:root[data-theme='night'] .ambient { filter: brightness(0.75); }
-.ambient-time { font-size: clamp(7rem, 18vw, 12rem); font-weight: 350; letter-spacing: -0.04em; line-height: 0.9; font-variant-numeric: tabular-nums; }
-.ambient-date { font-size: var(--fs-5); color: var(--muted); margin-top: -6px; }
-.ambient-weather { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
-.ambient-temp { font-size: 4rem; font-weight: 400; line-height: 1; }
-.ambient-cond { font-size: var(--fs-5); color: var(--muted); max-width: 24ch; text-align: left; }
-.ambient-next { display: grid; gap: 2px; margin-top: 12px; padding: 14px 22px; border-radius: 16px; background: var(--surface); border-left: 6px solid var(--cal, var(--accent)); text-align: left; min-width: min(460px, 80vw); }
-.ambient-next-label { font-size: var(--fs-3); color: var(--muted); font-weight: 600; }
-.ambient-next-title { font-size: var(--fs-6); font-weight: 650; }
-.ambient-hint { position: absolute; bottom: 28px; left: 0; right: 0; font-size: var(--fs-2); color: var(--muted); opacity: 0.7; }
+:root[data-theme='night'] { --dim-night: 0.82; }
+/* Idle: the whole dashboard dims after a while without a touch (Settings → General). */
+:root[data-idle] { --dim-idle: 0.55; }
+:root[data-theme='night'] .app, :root[data-idle] .app { filter: brightness(calc(var(--dim-night, 1) * var(--dim-idle, 1))); transition: filter 1.2s ease, transform 2s ease; }
 
 /* Portrait (iPad upright): Your day and News side by side, What's on across the bottom. */
 @container (max-width: 860px) {
@@ -915,3 +901,11 @@ button[disabled] { opacity: 0.4; }
 .volume.big .vol-level { font-size: var(--fs-5); min-width: 3em; }
 .volume.big .vol-step { width: 52px; height: 52px; }
 @container (max-width: 860px) { .bar .volume .vol-mute { display: none; } }
+
+/* Dancing stick figures on the bar while music plays (see Dancers.jsx). */
+.dancers { display: inline-flex; align-items: flex-end; gap: 2px; height: 40px; flex: none; padding: 0 2px; }
+.dancer { width: 22px; height: 38px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.dancer circle { fill: currentColor; stroke: none; }
+.dancer g, .dancer-body { transition: transform 0.36s cubic-bezier(0.34, 1.4, 0.64, 1); }
+.dancers.n2 .dancer:nth-child(2), .dancers.n3 .dancer:nth-child(3) { width: 19px; height: 33px; } /* friends stand a step back */
+@media (prefers-reduced-motion: reduce) { .dancer g, .dancer-body { transition: none; } }

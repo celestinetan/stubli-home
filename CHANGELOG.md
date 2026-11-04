@@ -7,12 +7,12 @@
 - Type for the wall: Figtree throughout the dashboard (Literata only in the story panel and the Paper look), a sturdier clock and temperature, and darker secondary text.
 - Redesign after a UX review, for reading from across the room: a larger type scale, Your day wider with today in one sentence at the top, calmer colours (neutral news cards, a quiet ticker), one line-icon style, and What's on next to Your day in the evening.
 - Upright iPads keep What's on, across the bottom. Columns that scroll say "More below".
-- Night dims the whole screen; a calm screen (time, weather, what's next) after 10 minutes without a touch; optional clock-only overnight; the layout shifts a few pixels each hour to spare the screen.
+- Night dims the whole screen; the whole dashboard dims after 10 minutes without a touch; optional clock-only overnight; the layout shifts a few pixels each hour to spare the screen.
 - What's on filters in one row; shorter weather tips; a 6-hour temperature and rain curve; headlines never repeat across cards and the ticker; a clearer story panel with Previous and Next.
 - One lights control in the bottom bar showing the mood that's on, with a power button; a short note when a mood is switched on.
 - The offline notice says when the data on screen was loaded. Settings list everyday choices first.
 - In Switzerland the weather comes from MeteoSwiss's own forecast (as in its app), not just its model.
-- Sonos: a redesigned music panel without album covers (Sonos often keeps them on the speaker, out of reach); the song title scrolls slowly while music plays, a shuffle button, favourites that refresh when the music panel opens, and Recently played instead of the playlists tab.
+- Sonos: a redesigned music panel without album covers (Sonos often keeps them on the speaker, out of reach), little stick figures that dance on the bar while music plays (a new crew and new moves each time), a song title that scrolls only when it's too long, a shuffle button, favourites that refresh when the music panel opens, and Recently played instead of the playlists tab.
 - Hue colour moods are your Hue scenes under their own names: Galaxy, Fairfax, Soho, Dreamy Dusk and Savannah Sunset, recalled as Hue saved them, each button in the scene's own colour.
 - Free museum days and venues more than 100 km from your city are left out.
 - The music and lights panels slide up from the bottom and back down.

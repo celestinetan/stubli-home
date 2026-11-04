@@ -147,13 +147,13 @@ function General({ e, save, textSize, setTextSize }) {
       </div>
       <p class="muted small">At night means between sunset and sunrise. The whole screen is dimmed then too.</p>
 
-      <h3>Calm screen</h3>
+      <h3>Dim when idle</h3>
       <div class="segmented">
         {[[0, 'Never'], [5, 'After 5 min'], [10, 'After 10 min'], [30, 'After 30 min']].map(([m, label]) => (
           <button key={m} aria-pressed={(e.ambientMinutes ?? 10) === m} onClick={() => save({ ambientMinutes: m })}>{label}</button>
         ))}
       </div>
-      <p class="muted small">Without a touch, the screen shows just the time, weather and what's next, large. A touch brings everything back.</p>
+      <p class="muted small">Without a touch, the whole dashboard dims. A touch brightens it again.</p>
 
       <h3>Overnight</h3>
       <div class="segmented">
