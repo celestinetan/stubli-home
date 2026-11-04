@@ -92,7 +92,7 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
             <>
               {/* The whole now-playing area opens the music panel. */}
               <button class="np-open" onClick={onMusic} aria-label="Open music">
-                <span class="np-eq-box"><Eq on={playing(group)} /></span>
+                <Disc on={playing(group)} size={40} />
                 <span class="np-text">
                   <Marquee class="np-title" text={group.title || 'Nothing playing'} />
                   <span class="np-room">{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
@@ -194,7 +194,7 @@ export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] })
                   {groups.map((g) => <button key={g.id} aria-pressed={g.id === group.id} onClick={() => pick(g.id)}>{g.name}</button>)}
                 </div>
               ) : <p class="np-where">Playing in {group.name}</p>}
-              <div class={`np-stage ${playing(group) ? 'on' : ''}`}><Eq on={playing(group)} big /></div>
+              <Disc on={playing(group)} size={132} />
               <div class="np-meta">
                 <h2 class="np-big-title">{group.title || 'Nothing playing'}</h2>
                 {group.artist && <p class="np-big-artist">{[group.artist, group.album].filter(Boolean).join(' · ')}</p>}
@@ -244,7 +244,7 @@ export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] })
                         <span class="pick-name">{x.name}</span>
                         {(x.description || x.tracks) && <span class="pick-sub">{x.description || `${x.tracks} tracks`}</span>}
                       </span>
-                      {now ? <span class="pick-now"><Eq on={playing(group)} /> Playing</span> : <span class="pick-play" aria-hidden="true"><Play size={18} /></span>}
+                      {now ? <span class="pick-now"><Disc on={playing(group)} size={18} /> Playing</span> : <span class="pick-play" aria-hidden="true"><Play size={18} /></span>}
                     </button>
                   )
                 })}
@@ -319,10 +319,10 @@ function Connect({ svc, state }) {
   return <a class="btn" href={`/auth/${svc}/start`}>Connect {name}</a>
 }
 
-// A visual equaliser: bars that move while music plays. Sonos doesn't share the sound itself,
-// so the bars are a gentle animation, not a reading of the music; they rest when paused.
-function Eq({ on, big, bars = big ? 15 : 4 }) {
-  return <span class={`eq ${on ? 'on' : ''} ${big ? 'big' : ''}`} aria-hidden="true">{Array.from({ length: bars }, (_, i) => <i key={i} style={{ '--d': `${0.8 + ((i * 37) % 5) * 0.12}s`, '--dl': `${-i * 0.17}s` }} />)}</span>
+// A small CD that turns slowly while music plays and rests when paused: a quiet sign that
+// something's on. It stays still if the tablet asks for reduced motion.
+function Disc({ on, size }) {
+  return <span class={`disc ${on ? 'on' : ''}`} style={{ '--size': `${size}px` }} aria-hidden="true" />
 }
 
 // Track time, counting on between Sonos updates while playing.

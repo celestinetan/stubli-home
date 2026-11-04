@@ -9,7 +9,7 @@
 - One lights control in the bottom bar showing the mood that's on, with a power button; a short note when a mood is switched on.
 - The offline notice says when the data on screen was loaded. Settings list everyday choices first.
 - In Switzerland the weather comes from MeteoSwiss's own forecast (as in its app), not just its model.
-- Sonos: a redesigned music panel without album covers (Sonos often keeps them on the speaker, out of reach), built around a visual equaliser, a shuffle button, favourites that refresh when the music panel opens, and Recently played instead of the playlists tab.
+- Sonos: a redesigned music panel without album covers (Sonos often keeps them on the speaker, out of reach), with a small CD that turns while music plays, a shuffle button, favourites that refresh when the music panel opens, and Recently played instead of the playlists tab.
 - Hue colour moods are your Hue scenes under their own names: Galaxy, Fairfax, Soho, Dreamy Dusk and Savannah Sunset, recalled as Hue saved them, each button in the scene's own colour.
 - Free museum days and venues more than 100 km from your city are left out.
 - The music and lights panels slide up from the bottom and back down.

@@ -20,7 +20,7 @@ the people you care about. It shares Stubli's look: warm paper colours, Moss gre
 4. **What's on:** your own items, regular free museum days (built in for Switzerland so far), plus optional event sources.
 5. **Music on the tablet:** paste YouTube or YouTube Music links (playlists, albums, mixes, songs)
    in Settings, then tap **Play music**. It plays on the tablet or a speaker connected to it. No account or key.
-6. **Sonos and Philips Hue (optional):** now playing with a visual equaliser, recently played and favourites, and whole-home moods with your Hue colour scenes.
+6. **Sonos and Philips Hue (optional):** now playing, recently played and favourites, and whole-home moods with your Hue colour scenes.
 7. **Settings on the tablet:** city, layout, news sources, calendars and keys can all be changed
    from the dashboard itself. No code needed.
 

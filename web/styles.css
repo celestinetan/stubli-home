@@ -678,12 +678,20 @@ button.now-icon:active { transform: scale(0.94); }
 .tablet-np .np-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .music-pick { max-width: 560px; }
 
-/* Visual equaliser: a gentle animation while music plays (Sonos doesn't share the sound itself). */
-.eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; flex: none; }
-.eq i { width: 3px; height: 30%; border-radius: 2px; background: var(--accent); transition: height .4s ease; }
-.eq.on i { animation: eq-bar var(--d, 1s) ease-in-out var(--dl, 0s) infinite alternate; }
-@keyframes eq-bar { 0% { height: 20%; } 50% { height: 85%; } 100% { height: 45%; } }
-@media (prefers-reduced-motion: reduce) { .eq.on i { animation: none; height: 60%; } }
+/* A small CD, turning slowly while music plays (see Disc in Home.jsx). Silver with a soft sheen,
+   a label ring in the panel tone and a hole in the middle; no colour, so it stays discreet. */
+.disc {
+  --size: 40px; flex: none; width: var(--size); height: var(--size); border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--surface) 0 8%, var(--muted) 8.5% 10%, var(--surface-2) 10.5% 30%, transparent 30.5%),
+    conic-gradient(from 20deg, #d9d6d0, #f4f2ee 12%, #c9c5bd 25%, #ebe8e2 38%, #cfcbc4 52%, #f6f4f0 64%, #c6c2ba 78%, #e8e5df 90%, #d9d6d0);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  opacity: 0.85;
+}
+:root[data-theme='night'] .disc { opacity: 0.6; }
+.disc.on { animation: disc-turn 6s linear infinite; opacity: 1; }
+@keyframes disc-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .disc.on { animation: none; } }
 
 
 /* Music and lights panels slide up from the bottom bar, and back down when closed. */
@@ -699,10 +707,6 @@ button.now-icon:active { transform: scale(0.94); }
 /* ---------- music panel: no album covers; the equaliser and the title carry it ---------- */
 .now-playing { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
 .np-where { font-size: var(--fs-2); color: var(--muted); }
-.np-stage { display: grid; place-items: center; height: min(200px, 26vh); border-radius: 18px; background: var(--surface-2); transition: background .4s ease; }
-.np-stage.on { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
-.eq.big { height: 62%; width: 72%; gap: 6px; justify-content: space-between; }
-.eq.big i { flex: 1; max-width: 12px; border-radius: 6px; }
 .np-meta { display: grid; gap: 4px; }
 .np-big-title { font-family: Literata, Georgia, serif; font-size: clamp(1.625rem, 3.2vw, 2.25rem) !important; font-weight: 600; line-height: 1.15; margin: 0 !important; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .np-big-artist { font-size: var(--fs-4); color: var(--ink); opacity: .8; }
@@ -730,7 +734,6 @@ button.now-icon:active { transform: scale(0.94); }
 .pick-play { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: var(--muted); flex: none; }
 .pick-row:active .pick-play, .pick-row.pending .pick-play { color: var(--accent-ink); background: var(--accent); }
 .pick-now { display: flex; align-items: center; gap: 8px; font-size: var(--fs-2); color: var(--accent); font-weight: 600; flex: none; }
-.np-eq-box { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; background: var(--surface-2); flex: none; }
 
 /* One icon style: Stubli's line icons beside events and saved items. */
 .item-icon { display: inline-grid; place-items: center; vertical-align: -3px; color: var(--muted); margin-right: 2px; }
@@ -820,3 +823,5 @@ button[disabled] { opacity: 0.4; }
   .main > .panel { min-height: 50vh; }
   .whatson { grid-column: auto; }
 }
+
+.now-playing > .disc { align-self: center; margin: 6px 0 4px; }
