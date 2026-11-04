@@ -133,8 +133,9 @@ function dashboard() {
 
 const hue = {
   configured: true, connected: true, activeMood: 'relaxed', allOffId: 'all', homeOn: true, homeBrightness: 60,
-  presets: [['energised', 'Energised', '☀️'], ['focused', 'Focused', '🎯'], ['relaxed', 'Relaxed', '🛋️'], ['cosy', 'Cosy', '🕯️'], ['sleepy', 'Sleepy', '🌛'], ['calm', 'Calm', '🌊', '#4fa3c7']]
-    .map(([id, name, icon, tint]) => ({ id, name, icon, tint: tint ?? null, scene: tint ? 'Arctic aurora' : null, rooms: tint ? 3 : 0 })),
+  presets: [['energised', 'Energised', '☀️'], ['focused', 'Focused', '🎯'], ['relaxed', 'Relaxed', '🛋️'], ['cosy', 'Cosy', '🕯️'], ['sleepy', 'Sleepy', '🌛'],
+    ['galaxy', 'Galaxy', '🌌', '#6a5bd6'], ['fairfax', 'Fairfax', '🌺', '#c64fb8'], ['soho', 'Soho', '🏙️', '#d8546a'], ['dreamy-dusk', 'Dreamy Dusk', '🌙', '#9a6ad0'], ['savanna-sunset', 'Savannah Sunset', '🌅', '#e0703a']]
+    .map(([id, name, icon, tint]) => ({ id, name, icon, tint: tint ?? null, scene: tint ? name : null, rooms: tint ? 3 : 0 })),
   rooms: ['Living room', 'Kitchen', 'Bedroom'].map((name, i) => ({ id: `r${i}`, name, lightId: `l${i}`, on: i < 2, brightness: [70, 45, 0][i], scenes: [] })),
 }
 const sonos = {

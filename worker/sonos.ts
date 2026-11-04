@@ -25,6 +25,20 @@ async function call(env: Env, path: string, init?: RequestInit) {
   return res.status === 204 ? {} : res.json<any>()
 }
 
+// Album covers. Sonos often gives artwork as a link to the speaker itself (http://192.168…:1400),
+// which neither a secure page nor this server can reach, or a plain http link a secure page won't
+// load. So: https links are used as they are; public http links go through /api/art; for the
+// rest, /api/art looks the cover up in Apple's free iTunes Search (artist and album or title).
+const PRIVATE = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|\[?fe80|.*\.local$)/i
+export function artUrl(src: string | null | undefined, find: { artist?: string; album?: string; title?: string; term?: string }) {
+  if (src?.startsWith('https://')) return src
+  if (src?.startsWith('http://')) {
+    try { if (!PRIVATE.test(new URL(src).hostname)) return `/api/art?u=${encodeURIComponent(src)}` } catch {}
+  }
+  const term = find.term ?? [find.artist, find.album || find.title].filter(Boolean).join(' ')
+  return term.trim() ? `/api/art?${new URLSearchParams({ q: term.trim(), kind: find.term || !find.album ? 'song' : 'album' })}` : null
+}
+
 // Households and favourites rarely change; cache them in the isolate for a few minutes.
 let cache: { at: number; household: string; favorites: any[]; playlists: any[] } | null = null
 
@@ -41,7 +55,7 @@ async function household(env: Env) {
     at: Date.now(),
     household: id,
     favorites: (f.items ?? []).map((x: any) => ({
-      id: x.id, name: x.name, image: x.imageUrl ?? x.images?.[0]?.url ?? null, description: x.description ?? x.service?.name ?? '',
+      id: x.id, name: x.name, image: artUrl(x.imageUrl ?? x.images?.[0]?.url, { term: x.name }), description: x.description ?? x.service?.name ?? '',
     })),
     playlists: (p.playlists ?? []).map((x: any) => ({ id: x.id, name: x.name, tracks: x.trackCount ?? null })),
   }
@@ -69,7 +83,8 @@ export async function sonosState(env: Env) {
       title: track?.name ?? meta.container?.name ?? '',
       artist: track?.artist?.name ?? '',
       album: track?.album?.name ?? '',
-      art: track?.imageUrl ?? track?.images?.[0]?.url ?? meta.container?.imageUrl ?? meta.container?.images?.[0]?.url ?? null,
+      art: artUrl(track?.imageUrl ?? track?.images?.[0]?.url ?? meta.container?.imageUrl ?? meta.container?.images?.[0]?.url,
+        { artist: track?.artist?.name, album: track?.album?.name, title: track?.name ?? meta.container?.name }),
       volume: vol.volume ?? null,
       muted: vol.muted ?? false,
       source: meta.container?.name ?? track?.service?.name ?? '',
@@ -93,4 +108,28 @@ export async function sonosAction(env: Env, groupId: string, action: string, bod
     case 'playlist': return post(`/groups/${g}/playlists`, { playlistId: String(body.id), playOnCompletion: true, action: 'REPLACE' })
     default: throw new Error(`Unknown Sonos action ${action}`)
   }
+}
+
+// /api/art: a public http image passed through, or the first iTunes Search match for a search term.
+const found = new Map<string, string | null>() // search term → cover link, for this isolate
+export async function artResponse(u: string | undefined, q: string | undefined, kind: string | undefined) {
+  const cacheFor = (s: number) => ({ 'Cache-Control': `public, max-age=${s}` })
+  if (u) {
+    const url = new URL(u)
+    if (url.protocol !== 'http:' || PRIVATE.test(url.hostname)) return new Response(null, { status: 400 })
+    const res = await fetch(url.toString())
+    const type = res.headers.get('content-type') ?? ''
+    if (!res.ok || !type.startsWith('image/')) return new Response(null, { status: 404 })
+    return new Response(res.body, { headers: { 'Content-Type': type, ...cacheFor(86400) } })
+  }
+  if (!q) return new Response(null, { status: 400 })
+  const key = `${kind}|${q.toLowerCase()}`
+  if (!found.has(key)) {
+    const search = new URLSearchParams({ term: q, media: 'music', entity: kind === 'album' ? 'album' : 'song', limit: '1' })
+    const r = await fetch(`https://itunes.apple.com/search?${search}`).then((x) => (x.ok ? x.json<any>() : null)).catch(() => null)
+    const small: string | undefined = r?.results?.[0]?.artworkUrl100
+    found.set(key, small ? small.replace(/\/\d+x\d+bb\./, '/600x600bb.') : null)
+  }
+  const cover = found.get(key)
+  return cover ? new Response(null, { status: 302, headers: { Location: cover, ...cacheFor(604800) } }) : new Response(null, { status: 404, headers: cacheFor(3600) })
 }

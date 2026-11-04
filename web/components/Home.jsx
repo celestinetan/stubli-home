@@ -49,7 +49,25 @@ export function useHome(sheetOpen) {
     return run(`${action}:${id}`, `/api/hue/${action}/${encodeURIComponent(id)}`, body, 'Hue', reloadHue)
   }
   const busy = (key) => (pending[key] ? 'pending' : '')
-  return { sonos, hue, group, groups, pick, sonosDo, hueDo, busy }
+
+  // Recently played: Sonos doesn't share its own history with other apps, so this tablet keeps one:
+  // what you start here, and any favourite or Sonos playlist it sees playing (by name). Kept only
+  // in this tablet's storage, newest first.
+  const [recents, setRecents] = useState(() => store.get('sonosRecents', []))
+  const remember = (kind, x) => setRecents((r) => {
+    const next = [{ kind, id: x.id, name: x.name, image: x.image ?? null, description: x.description ?? '', at: Date.now() }, ...r.filter((y) => !(y.kind === kind && y.id === x.id))].slice(0, 12)
+    store.set('sonosRecents', next)
+    return next
+  })
+  const source = group?.source?.toLowerCase()
+  useEffect(() => {
+    if (!source || !playing(group)) return
+    const fav = sonos?.favorites?.find((f) => f.name.toLowerCase() === source)
+    const list = !fav && sonos?.playlists?.find((p) => p.name.toLowerCase() === source)
+    if (fav) remember('favorite', fav)
+    else if (list) remember('playlist', { ...list, image: group.art, description: 'Sonos playlist' })
+  }, [source, group?.state])
+  return { sonos, hue, group, groups, pick, sonosDo, hueDo, busy, recents, remember }
 }
 
 const playing = (g) => g?.state === 'PLAYBACK_STATE_PLAYING' || g?.state === 'PLAYBACK_STATE_BUFFERING'
@@ -73,7 +91,7 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
               <button class="np-open" onClick={onMusic} aria-label="Open music">
                 <Art src={group.art} />
                 <span class="np-text">
-                  <Marquee class="np-title" text={group.title || 'Nothing playing'} />
+                  <span class="np-title-row"><Eq on={playing(group)} /><Marquee class="np-title" text={group.title || 'Nothing playing'} /></span>
                   <span class="np-room">{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
                 </span>
               </button>
@@ -132,22 +150,26 @@ const mmss = (ms) => (ms == null ? '' : `${Math.floor(ms / 60000)}:${String(Math
 // tablet: music that plays on the tablet itself (YouTube links from Settings → Music), offered as a
 // third tab beside the Sonos favourites and playlists.
 export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
-  const { sonos, group, groups, pick, sonosDo, busy } = home
+  const { sonos, group, groups, pick, sonosDo, busy, recents, remember } = home
   const [query, setQuery] = useState('')
-  const [tab, setTab] = useState('favourites')
+  const [tab, setTab] = useState(() => (recents.length ? 'recent' : 'favourites'))
   const q = query.trim().toLowerCase()
   const match = (x) => !q || `${x.name} ${x.description ?? ''}`.toLowerCase().includes(q)
   const favs = (sonos?.favorites ?? []).filter(match)
-  const lists = (sonos?.playlists ?? []).filter(match)
+  // Sonos playlists aren't a tab of their own: they turn up in Recently played once played, and in search.
+  const lists = (sonos?.playlists ?? []).map((p) => ({ ...p, kind: 'playlist', description: 'Sonos playlist' })).filter(match)
+  const recent = recents.filter(match)
   const onTablet = tabletLinks.map((l, i) => ({ ...l, id: `yt${i}`, description: l.list ? 'Playlist' : 'Song or video' })).filter(match)
-  const items = tab === 'favourites' ? favs : tab === 'tablet' ? onTablet : lists
+  const items = tab === 'tablet' ? onTablet : tab === 'recent' ? recent
+    : q ? [...favs.map((f) => ({ ...f, kind: 'favorite' })), ...lists] : favs.map((f) => ({ ...f, kind: 'favorite' }))
   const play = (x) => {
     if (tab === 'tablet') {
       tablet.play(x); onClose()
       window.dispatchEvent(new CustomEvent('toast', { detail: `Playing ${x.name} on this tablet` }))
       return
     }
-    sonosDo(group.id, tab === 'favourites' ? 'favorite' : 'playlist', { id: x.id })
+    sonosDo(group.id, x.kind, { id: x.id })
+    remember(x.kind, x)
     window.dispatchEvent(new CustomEvent('toast', { detail: `Playing ${x.name} in ${group.name}` }))
   }
 
@@ -164,7 +186,8 @@ export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
                 </div>
               )}
               {groups.length === 1 && <p class="muted small np-where">Playing in {group.name}</p>}
-              {safeArt(group.art) ? <img class="np-art" src={safeArt(group.art)} alt="" /> : <span class="np-art placeholder"><Music size={48} /></span>}
+              <Cover src={group.art} cls="np-art" size={48} />
+              <Eq on={playing(group)} big />
               <h2 class="np-big-title">{group.title || 'Nothing playing'}</h2>
               <p class="muted np-big-artist">{[group.artist, group.album].filter(Boolean).join(' · ') || group.source}</p>
               {group.duration > 0 && (
@@ -191,15 +214,15 @@ export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
               <input class="search" type="search" placeholder={tabletLinks.length ? 'Search favourites, playlists and tablet music' : 'Search favourites and playlists'} value={query}
                 onInput={(e) => setQuery(e.currentTarget.value)} aria-label="Search favourites and playlists" />
               <div class="segmented">
+                <button aria-pressed={tab === 'recent'} onClick={() => setTab('recent')}>Recently played · {recent.length}</button>
                 <button aria-pressed={tab === 'favourites'} onClick={() => setTab('favourites')}>Favourites · {favs.length}</button>
-                <button aria-pressed={tab === 'playlists'} onClick={() => setTab('playlists')}>Sonos playlists · {lists.length}</button>
                 {tabletLinks.length > 0 && <button aria-pressed={tab === 'tablet'} onClick={() => setTab('tablet')}>On this tablet · {onTablet.length}</button>}
               </div>
               <div class="tiles">
-                {items.length === 0 && <p class="muted">{q ? `Nothing matches “${query}”.` : tab === 'tablet' ? 'Nothing yet. Add YouTube or YouTube Music links in Settings → Music.' : tab === 'playlists' ? 'No Sonos playlists yet. Create them in the Sonos app.' : 'No favourites yet. Add them in the Sonos app.'}</p>}
+                {items.length === 0 && <p class="muted">{q ? `Nothing matches “${query}”.` : tab === 'tablet' ? 'Nothing yet. Add YouTube or YouTube Music links in Settings → Music.' : tab === 'recent' ? 'Nothing yet. What you play from here, and favourites you play in the Sonos app, show up here.' : 'No favourites yet. Add them in the Sonos app.'}</p>}
                 {items.map((x) => (
-                  <button class={`tile ${tab === 'tablet' ? '' : busy(`${group.id}:${tab === 'favourites' ? 'favorite' : 'playlist'}`)}`} key={x.id} onClick={() => play(x)}>
-                    {safeArt(x.image) ? <img src={safeArt(x.image)} alt="" /> : <span class="tile-ph"><Music size={22} /></span>}
+                  <button class={`tile ${tab === 'tablet' ? '' : busy(`${group.id}:${x.kind}`)}`} key={`${x.kind}${x.id}`} onClick={() => play(x)}>
+                    <Cover src={x.image} cls="tile-art" ph="tile-ph" />
                     <span class="tile-name">{x.name}</span>
                     {(x.description || x.tracks) && <span class="tile-sub">{x.description || `${x.tracks} tracks`}</span>}
                   </button>
@@ -238,7 +261,7 @@ export function LightsSheet({ home, onClose }) {
                 {(hue.presets ?? []).map((p) => (
                   <button class={`preset ${p.tint ? 'colour' : ''} ${hue.activeMood === p.id ? 'active' : ''} ${busy(`preset:${p.id}`)}`} aria-pressed={hue.activeMood === p.id} style={p.tint ? { '--tint': p.tint } : null} key={p.id} onClick={() => hueDo('preset', p.id, null, (x) => ({ ...x, on: true }), { homeOn: true, activeMood: p.id })}>
                     <span class="preset-icon" aria-hidden="true">{p.icon}</span>{p.name}
-                    {p.tint && <span class="preset-scene">{p.scene ? `${p.scene}${p.rooms < hue.rooms.length ? ` · ${p.rooms}/${hue.rooms.length} rooms` : ''}` : 'Add scene in Hue app'}</span>}
+                    {p.tint && !p.scene && <span class="preset-scene">Add scene in Hue app</span>}
                   </button>
                 ))}
               </div>
@@ -275,14 +298,21 @@ function Connect({ svc, state }) {
   return <a class="btn" href={`/auth/${svc}/start`}>Connect {name}</a>
 }
 
-// Sonos sometimes gives artwork from the speaker itself (http://192.168…), which a secure page
-// can't load; show a placeholder instead of a broken image.
-const safeArt = (src) => (src && src.startsWith('https://') ? src : null)
+// Covers come as https links or through this dashboard's own /api/art (see worker/sonos.ts);
+// anything else, or a cover that doesn't load, shows a placeholder instead of a broken image.
+const safeArt = (src) => (src && (src.startsWith('https://') || src.startsWith('/api/art')) ? src : null)
 
-function Art({ src }) {
-  const [failed, setFailed] = useState(false)
+function Cover({ src, cls, ph = 'placeholder', size = 22 }) {
+  const [failed, setFailed] = useState(null)
   const url = safeArt(src)
-  return url && !failed ? <img class="art" src={url} alt="" onError={() => setFailed(true)} /> : <span class="art placeholder"><Music size={22} /></span>
+  return url && failed !== url ? <img class={cls} src={url} alt="" onError={() => setFailed(url)} /> : <span class={`${cls} ${ph}`}><Music size={size} /></span>
+}
+const Art = ({ src }) => <Cover src={src} cls="art" />
+
+// A visual equaliser: bars that move while music plays. Sonos doesn't share the sound itself,
+// so the bars are a gentle animation, not a reading of the music; they rest when paused.
+function Eq({ on, big }) {
+  return <span class={`eq ${on ? 'on' : ''} ${big ? 'big' : ''}`} aria-hidden="true"><i /><i /><i /><i />{big && <><i /><i /><i /></>}</span>
 }
 
 // Range slider that updates on screen while dragging and sends once on release.

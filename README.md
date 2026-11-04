@@ -20,7 +20,7 @@ the people you care about. It shares Stubli's look: warm paper colours, Moss gre
 4. **What's on:** your own items, regular free museum days (built in for Switzerland so far), plus optional event sources.
 5. **Music on the tablet:** paste YouTube or YouTube Music links (playlists, albums, mixes, songs)
    in Settings, then tap **Play music**. It plays on the tablet or a speaker connected to it. No account or key.
-6. **Sonos and Philips Hue (optional):** now playing, favourites and whole-home moods.
+6. **Sonos and Philips Hue (optional):** now playing with album covers and a visual equaliser, recently played and favourites, and whole-home moods with your Hue colour scenes.
 7. **Settings on the tablet:** city, layout, news sources, calendars and keys can all be changed
    from the dashboard itself. No code needed.
 
@@ -174,7 +174,9 @@ Checked 3 November 2026.
 
 Your calendar links, keys and settings are stored only in your own Cloudflare account, and links
 and keys are never shown again after saving. With a Gemini key, public headlines (never your own
-data) are sent to Google to be summarised. Nothing else leaves your dashboard.
+data) are sent to Google to be summarised. With Sonos, when a cover can't be loaded from Sonos,
+the artist and album (or song) name is looked up in Apple's free iTunes Search to find it. Sonos's
+recently played list is kept only on the tablet. Nothing else leaves your dashboard.
 
 ## Developing
 

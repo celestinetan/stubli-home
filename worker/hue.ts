@@ -58,7 +58,10 @@ export async function hueState(env: Env) {
       // The gallery scene this mood uses, and how many rooms have it.
       const first = p.colour ? p.scenes.slice(0, -1).find((n) => scenes.data.some((s: any) => (s.metadata?.name ?? '').toLowerCase() === n.toLowerCase())) : null
       const rooms = first ? rooms_.data.length : 0 // missing rooms get the scene's colours copied over
-      return { id: p.id, name: p.name, icon: p.icon, tint: p.tint ?? null, scene: first ?? null, rooms }
+      // The button takes the scene's own first colour, where Hue gives one.
+      const own = first ? scenes.data.find((s: any) => (s.metadata?.name ?? '').toLowerCase() === first.toLowerCase()) : null
+      const c = own ? sceneColours(own)[0] : null
+      return { id: p.id, name: p.name, icon: p.icon, tint: (c ? xyToHex(c.xy) : null) ?? p.tint ?? null, scene: first ?? null, rooms }
     }),
     rooms: rooms_.data
       .map((r: any) => {
@@ -81,8 +84,9 @@ export async function hueState(env: Env) {
 
 // Whole-home presets: recall the first matching scene in every room, so one tap sets the house.
 // Whole-home moods: each recalls the first matching scene in every room. White moods use Hue's
-// standard scenes; colour moods use Hue app gallery scenes, renamed by feeling. Rooms that don't
-// have that gallery scene yet fall back to a calm white (add the scene to the room in the Hue app).
+// standard scenes; colour moods are Hue app gallery scenes under their own names, recalled exactly
+// as Hue saved them. Rooms that don't have that scene get its colours copied over, or a calm white
+// if the scene isn't anywhere yet (add it to the room in the Hue app).
 type Mood = { id: string; name: string; icon: string; scenes: string[]; colour?: boolean; tint?: string }
 export const HOME_PRESETS: Mood[] = [
   { id: 'energised', name: 'Energised', icon: '☀️', scenes: ['Energize', 'Bright', 'Concentrate'] },
@@ -90,11 +94,11 @@ export const HOME_PRESETS: Mood[] = [
   { id: 'relaxed', name: 'Relaxed', icon: '🛋️', scenes: ['Relax', 'Rest'] },
   { id: 'cosy', name: 'Cosy', icon: '🕯️', scenes: ['Dimmed', 'Rest', 'Nightlight'] },
   { id: 'sleepy', name: 'Sleepy', icon: '🌛', scenes: ['Nightlight', 'Rest'] },
-  { id: 'cheerful', name: 'Cheerful', icon: '🌸', colour: true, tint: '#e98bb0', scenes: ['Spring blossom', 'Fairfax', 'Relax'] },
-  { id: 'calm', name: 'Calm', icon: '🌊', colour: true, tint: '#4fa3c7', scenes: ['Arctic aurora', 'Relax'] },
-  { id: 'romantic', name: 'Romantic', icon: '🌹', colour: true, tint: '#e0703a', scenes: ['Savanna sunset', 'Relax'] },
-  { id: 'dreamy', name: 'Dreamy', icon: '🌙', colour: true, tint: '#6a5bd6', scenes: ['Galaxy', 'Tropical twilight', 'Relax'] },
-  { id: 'playful', name: 'Playful', icon: '🎉', colour: true, tint: '#c64fb8', scenes: ['Fairfax', 'Indie Mood', 'Colorful Relax', 'Energize'] },
+  { id: 'galaxy', name: 'Galaxy', icon: '🌌', colour: true, tint: '#6a5bd6', scenes: ['Galaxy', 'Relax'] },
+  { id: 'fairfax', name: 'Fairfax', icon: '🌺', colour: true, tint: '#c64fb8', scenes: ['Fairfax', 'Relax'] },
+  { id: 'soho', name: 'Soho', icon: '🏙️', colour: true, tint: '#d8546a', scenes: ['Soho', 'Relax'] },
+  { id: 'dreamy-dusk', name: 'Dreamy Dusk', icon: '🌙', colour: true, tint: '#9a6ad0', scenes: ['Dreamy dusk', 'Relax'] },
+  { id: 'savanna-sunset', name: 'Savannah Sunset', icon: '🌅', colour: true, tint: '#e0703a', scenes: ['Savanna sunset', 'Savannah sunset', 'Relax'] },
 ]
 
 async function homePreset(env: Env, presetId: string) {
@@ -164,4 +168,15 @@ export async function hueAction(env: Env, action: string, id: string, body: any)
     }
     default: throw new Error(`Unknown Hue action ${action}`)
   }
+}
+
+// A Hue colour (CIE xy) as a screen colour, at full brightness, for the mood buttons.
+function xyToHex(xy?: { x: number; y: number }) {
+  if (!xy?.x || !xy?.y) return null
+  const z = 1 - xy.x - xy.y
+  const X = xy.x / xy.y, Z = z / xy.y
+  let rgb = [X * 1.656492 - 0.354851 - Z * 0.255038, -X * 0.707196 + 1.655397 + Z * 0.036152, X * 0.051713 - 0.121364 + Z * 1.01153]
+  const max = Math.max(...rgb)
+  rgb = rgb.map((v) => Math.max(0, v / (max || 1))).map((v) => (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055))
+  return '#' + rgb.map((v) => Math.round(Math.min(1, v) * 255).toString(16).padStart(2, '0')).join('')
 }
