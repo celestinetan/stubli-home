@@ -4,6 +4,7 @@
 
 - Your day shows the next 3 days at a glance, instead of tomorrow in one line.
 - Free museum days across Switzerland built in (Zürich, Winterthur, Basel, Luzern, Geneva, Lausanne, Neuchâtel, Lugano), including "first Sunday of the month" rules. Turn them off in Settings → What's on.
+- Zentralwäscherei (Zürich) as an optional event source: its concerts and performances.
 - One schedule instead of four, so the Deploy button works on accounts that already use some; news refreshes every half hour to stay well under the free storage limit.
 
 ## 1.0 – 3 November 2026

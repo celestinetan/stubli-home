@@ -266,6 +266,11 @@ function EventSettings({ e, save }) {
             <span>Kultur Züri <span class="muted small">· Zürich area</span></span><span class="switch" aria-hidden="true"><span /></span>
           </button>
         </li>
+        <li>
+          <button class="toggle-row" aria-pressed={!!e.zentralwaescherei} onClick={() => save({ zentralwaescherei: !e.zentralwaescherei })}>
+            <span>Zentralwäscherei <span class="muted small">· concerts and performances, Zürich</span></span><span class="switch" aria-hidden="true"><span /></span>
+          </button>
+        </li>
         {e.freeDaysCount > 0 && (
           <li>
             <button class="toggle-row" aria-pressed={!!e.freeDays} onClick={() => save({ freeDays: !e.freeDays })}>
@@ -274,7 +279,7 @@ function EventSettings({ e, save }) {
           </li>
         )}
       </ul>
-      {e.kulturZueri && <><h3>From Kultur Züri</h3>
+      {(e.kulturZueri || e.zentralwaescherei) && <><h3>Kinds of events</h3>
       <ul class="toggle-list">
         {EVENT_KINDS.map(({ id, label }) => (
           <li key={id}>
@@ -284,7 +289,7 @@ function EventSettings({ e, save }) {
           </li>
         ))}
       </ul>
-      <p class="muted small">Listings cover Zürich and nearby towns and refresh every hour.</p></>}
+      <p class="muted small">Listings refresh every hour. Kultur Züri covers Zürich and nearby towns; Zentralwäscherei adds its concerts (as music) and performances (as art).</p></>}
 
       <h3>Your free events</h3>
       <ul class="feed-list">

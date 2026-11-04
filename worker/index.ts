@@ -112,7 +112,7 @@ app.get('/api/dashboard', async (c) => {
   return c.json({
     ...out,
     settings: {
-      sleep: config.display.sleep, nightlyReload: config.display.nightlyReload, theme: config.display.theme, paper: config.display.paper, eventSources: config.events.kulturZueri,
+      sleep: config.display.sleep, nightlyReload: config.display.nightlyReload, theme: config.display.theme, paper: config.display.paper, eventSources: config.events.kulturZueri || config.events.zentralwaescherei,
       barScenes: config.home.barScenes, newsCategories: config.news.categories, tabletMusic: config.tabletMusic,
       timezone: config.timezone, location: config.location.name, modules: config.modules, columns: config.columns,
     },
@@ -140,7 +140,7 @@ app.get('/api/settings', async (c) => {
     effective: {
       location: { ...config.location, timezone: config.timezone, subdivision: config.local.subdivision },
       modules: config.modules, columns: config.columns, theme: config.display.theme, paper: config.display.paper,
-      feeds: config.news.feeds, categories: config.news.categories, eventKinds: config.events.kinds, kulturZueri: config.events.kulturZueri, tabletMusic: config.tabletMusic,
+      feeds: config.news.feeds, categories: config.news.categories, eventKinds: config.events.kinds, kulturZueri: config.events.kulturZueri, zentralwaescherei: config.events.zentralwaescherei, tabletMusic: config.tabletMusic,
       freeDays: config.events.freeDays, freeDaysCount: FREE_DAYS[config.location.country]?.length ?? 0,
       hiddenCalendars: config.calendar.hidden, localEvents: config.local.events,
     },

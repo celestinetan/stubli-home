@@ -24,6 +24,7 @@ export interface Saved {
   hiddenCategories?: string[]
   eventKinds?: Partial<typeof config.events.kinds>
   kulturZueri?: boolean
+  zentralwaescherei?: boolean
   freeDays?: boolean
   tabletMusic?: { name: string; list?: string; video?: string }[]
   hiddenCalendars?: string[]
@@ -49,6 +50,7 @@ export async function applySettings(env: Env, force = false) {
   if (saved.hiddenCategories) fresh.news.categories = fresh.news.categories.filter((c) => !saved.hiddenCategories!.includes(c.id))
   if (saved.eventKinds) fresh.events.kinds = { ...fresh.events.kinds, ...saved.eventKinds }
   if (saved.kulturZueri != null) fresh.events.kulturZueri = saved.kulturZueri
+  if (saved.zentralwaescherei != null) fresh.events.zentralwaescherei = saved.zentralwaescherei
   if (saved.freeDays != null) fresh.events.freeDays = saved.freeDays
   if (saved.tabletMusic) fresh.tabletMusic = saved.tabletMusic
   // Things that follow the location: the Local news card's name, the city as a ranking keyword,
@@ -91,6 +93,7 @@ export async function saveSettings(env: Env, patch: Saved) {
   }
   if (patch.hiddenCategories) next.hiddenCategories = patch.hiddenCategories.map(String).slice(0, 20)
   if (patch.kulturZueri != null) next.kulturZueri = !!patch.kulturZueri
+  if (patch.zentralwaescherei != null) next.zentralwaescherei = !!patch.zentralwaescherei
   if (patch.freeDays != null) next.freeDays = !!patch.freeDays
   if (patch.tabletMusic) {
     next.tabletMusic = (patch.tabletMusic as any[]).slice(0, 24).map((m) => {
