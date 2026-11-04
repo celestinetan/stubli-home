@@ -26,10 +26,10 @@ function usePoll(path, everyMs) {
 }
 
 export function useHome(sheetOpen) {
-  // Every Sonos update costs requests against its daily limit, so it checks often only while
+  // Every Sonos update costs requests against its daily limit, so it checks more often only while
   // music plays or the music panel is open.
   const [anyPlaying, setAnyPlaying] = useState(false)
-  const [sonos, reloadSonos, setSonos] = usePoll('/api/sonos', sheetOpen ? 5000 : anyPlaying ? 15000 : 60000)
+  const [sonos, reloadSonos, setSonos] = usePoll('/api/sonos', sheetOpen ? 5000 : anyPlaying ? 30000 : 60000)
   useEffect(() => setAnyPlaying(!!sonos?.groups?.some(playing)), [sonos])
   const [hue, reloadHue, setHue] = usePoll('/api/hue', sheetOpen ? 10000 : 30000)
   const [groupId, setGroupId] = useState(() => store.get('sonosGroup', null))

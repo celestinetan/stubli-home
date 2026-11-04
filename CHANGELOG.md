@@ -2,7 +2,7 @@
 
 ## 1.1 – 4 November 2026
 
-- Sonos uses far fewer requests (Sonos allows 20,000 a day): it checks every 15 seconds only while music plays, every minute otherwise, and rereads idle speakers only when they change. If the limit is reached it pauses, keeps the last state on screen and says so.
+- Sonos uses far fewer requests (Sonos allows 20,000 a day): it checks every 30 seconds while music plays, every minute otherwise, and rereads idle speakers only when they change. If the limit is reached it pauses, keeps the last state on screen and says so.
 - Music, two ways: YouTube Music on the tablet is now a step in setup and has its own place on the bar (with the dancers), next to Sonos.
 - Easier to fit any city: venues carry their own location, and nearby-only sources (free days, venues, Kultur Züri) appear only within 100 km. "Make it yours" in the README explains how to add your city.
 - Your day redesigned as one timeline: a green Now mark, events as blocks in their calendar's colour (the next one larger), free time shown as space, all-day items as pills, and tomorrow below in the same detail (time, end, length, place).

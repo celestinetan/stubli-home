@@ -57,8 +57,10 @@ async function household(env: Env, fresh = false) {
   return cache
 }
 
-// Each group's track, volume and play mode cost three requests. Playing groups are read on every
-// update; the others only when their state changes or every ten minutes.
+// Each group's track, volume and play mode cost three requests. A playing group's track is read
+// on every update and its volume and position once a minute; other groups only when their state
+// changes or every ten minutes. A control tapped on the tablet clears its group, so the next
+// update reads it afresh.
 const details = new Map<string, { at: number; state: string; meta: any; vol: any; pb: any }>()
 let last: any = null
 
@@ -81,7 +83,8 @@ async function readState(env: Env, fresh: boolean) {
   const groups = await Promise.all((g.groups ?? []).map(async (grp: any) => {
     const state = grp.playbackState ?? 'PLAYBACK_STATE_IDLE'
     let d = details.get(grp.id)
-    if (fresh || !d || d.state !== state || state === 'PLAYBACK_STATE_PLAYING' || Date.now() - d.at > 10 * 60_000) {
+    const age = d ? Date.now() - d.at : Infinity
+    if (fresh || !d || d.state !== state || age > 10 * 60_000 || (state === 'PLAYBACK_STATE_PLAYING' && age > 60_000)) {
       const [meta, vol, pb] = await Promise.all([
         call(env, `/groups/${grp.id}/playbackMetadata`).catch(() => ({})),
         call(env, `/groups/${grp.id}/groupVolume`).catch(() => ({})),
@@ -89,6 +92,12 @@ async function readState(env: Env, fresh: boolean) {
       ])
       d = { at: Date.now(), state, meta, vol, pb }
       details.set(grp.id, d)
+    } else if (state === 'PLAYBACK_STATE_PLAYING') {
+      // A new track needs its position from the start, so read that too.
+      const cur = d
+      const meta = await call(env, `/groups/${grp.id}/playbackMetadata`).catch(() => cur.meta)
+      if (meta.currentItem?.track?.name !== cur.meta.currentItem?.track?.name) cur.pb = await call(env, `/groups/${grp.id}/playback`).catch(() => cur.pb)
+      cur.meta = meta
     }
     const { meta, vol, pb } = d
     const track = meta.currentItem?.track
@@ -115,6 +124,7 @@ async function readState(env: Env, fresh: boolean) {
 
 export async function sonosAction(env: Env, groupId: string, action: string, body: any) {
   const g = encodeURIComponent(groupId)
+  details.delete(groupId)
   const post = (path: string, data?: any) => call(env, path, { method: 'POST', body: JSON.stringify(data ?? {}) })
   switch (action) {
     case 'toggle': return post(`/groups/${g}/playback/togglePlayPause`)
