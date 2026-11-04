@@ -12,7 +12,7 @@ the people you care about. It shares Stubli's look: warm paper colours, Moss gre
 
 1. **Weather:** the current conditions with a friendly animated icon, "before you go" advice
    (umbrella, an extra layer), the next 6 hours and 3 days. Rain alerts for the next few hours.
-2. **Your day:** the next event in large type, today's agenda and the next 3 days at a glance, from any
+2. **Your day:** the next event in large type, today as a timeline and tomorrow in detail, from any
    calendar that offers an iCal link (Proton, Google, iCloud, Outlook). Public holidays for your country.
 3. **News:** stories grouped across many outlets, ranked by importance and summarised in plain
    English, in cards by topic. A headline ticker runs along the bottom. Add outlets in any

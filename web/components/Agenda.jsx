@@ -6,7 +6,8 @@ const MIN = 60_000
 
 // Your day, in one visual language: a short line for what the timeline can't show (rain, a
 // holiday), today's all-day items as pills, the rest of today as a timeline from now (events as
-// blocks tinted in their calendar's colour, free time as space), and the next 3 days as cards.
+// blocks tinted in their calendar's colour, free time as space), then tomorrow in the same style.
+// Only two days, so each event has room for its time, length and place.
 export function Agenda({ now, calendar, local, weather, place = '', extra }) {
   const c = calendar?.data
   const today = isoDay(now)
@@ -25,21 +26,19 @@ export function Agenda({ now, calendar, local, weather, place = '', extra }) {
     const timed = todays.filter((e) => !e.allDay)
     const pills = [...todays.filter((e) => e.allDay).map((e) => ({ key: e.title, title: e.title, color: e.color })),
       ...localOn(today, weekdayOf(now)).map((it) => ({ key: it.title, title: it.title, note: [it.time, it.place].filter(Boolean).join(' · ') }))]
-    const days = [1, 2, 3].map((d) => {
-      const t = now + d * DAY
-      const iso = isoDay(t)
-      return { d, t, events: on(iso), local: localOn(iso, weekdayOf(t)) }
-    })
+    const tmr = isoDay(now + DAY)
+    const tmrEvents = on(tmr)
+    const tmrPills = [...tmrEvents.filter((e) => e.allDay).map((e) => ({ key: e.title, title: e.title, color: e.color })),
+      ...localOn(tmr, weekdayOf(now + DAY)).map((it) => ({ key: it.title, title: it.title, note: [it.time, it.place].filter(Boolean).join(' · ') }))]
     body = (
       <>
-        {pills.length > 0 && (
-          <ul class="pills" aria-label="All day">
-            {pills.map((p) => <li class="pill" key={p.key} style={p.color ? { '--cal': p.color } : null}>{p.title}{p.note && <span class="muted"> · {p.note}</span>}</li>)}
-          </ul>
-        )}
-        {/* Only today scrolls; the next 3 days stay pinned at the bottom. */}
-        <div class="scroll tl-scroll"><Timeline now={now} events={timed} /></div>
-        <NextDays days={days} />
+        <div class="scroll tl-scroll">
+          <Pills items={pills} />
+          <Timeline now={now} events={timed} />
+          <h3 class="tl-day">Tomorrow <span class="muted">· {fmtDay(now + DAY)}</span></h3>
+          <Pills items={tmrPills} />
+          <Tomorrow events={tmrEvents.filter((e) => !e.allDay)} />
+        </div>
         {c.calendars.filter((x) => x.error).map((x) => (
           <p class="muted small" key={x.name}>⚠ {x.name} couldn't be loaded</p>
         ))}
@@ -128,33 +127,33 @@ function EventRow({ e, now, first }) {
   )
 }
 
-// The next 3 days as three equal cards: how many events, and the first two.
-function NextDays({ days }) {
+function Pills({ items }) {
+  if (!items.length) return null
   return (
-    <div class="next-days">
-      {days.map(({ d, t, events, local }) => {
-        const n = events.length
+    <ul class="pills" aria-label="All day">
+      {items.map((p) => <li class="pill" key={p.key} style={p.color ? { '--cal': p.color } : null}>{p.title}{p.note && <span class="muted"> · {p.note}</span>}</li>)}
+    </ul>
+  )
+}
+
+// Tomorrow: the same blocks as today, with start time, end and place; no Now mark.
+function Tomorrow({ events }) {
+  if (!events.length) return <p class="tl-empty">Nothing planned yet</p>
+  return (
+    <ol class="timeline" aria-label="Tomorrow">
+      {events.map((e) => {
+        const size = Math.min(3, Math.max(0, (e.end - e.start) / (60 * MIN) - 0.5))
         return (
-          <div class="nd-card" key={d}>
-            <span class="nd-head">
-              <span class="nd-day">{d === 1 ? 'Tomorrow' : fmtDay(t)}</span>
-              <span class="nd-count">{n ? `${n} event${n > 1 ? 's' : ''}` : 'Free'}</span>
+          <li class="tl-row tl-event" key={`${e.calendar}${e.start}${e.title}`} style={{ '--cal': e.color, '--size': size }}>
+            <span class="tl-time">{fmtTime(e.start)}</span>
+            <span class="tl-rail"><i /></span>
+            <span class="tl-block">
+              <span class="tl-title">{e.title}</span>
+              <span class="tl-meta">Until {fmtTime(e.end)} · {hm(e.end - e.start)}{e.location ? ` · ${e.location}` : ''}</span>
             </span>
-            {n === 0 && !local.length ? <span class="nd-empty">Nothing planned</span> : (
-              <ul class="nd-list">
-                {local.slice(0, 1).map((it) => <li class="nd-item local" key={it.title}><span class="nd-title">{it.title}</span></li>)}
-                {events.slice(0, local.length ? 1 : 2).map((e) => (
-                  <li class="nd-item" key={`${e.calendar}${e.start}${e.title}`} style={{ '--cal': e.color }}>
-                    {!e.allDay && <span class="nd-time">{fmtTime(e.start)}</span>}
-                    <span class="nd-title">{e.title}</span>
-                  </li>
-                ))}
-                {n > (local.length ? 1 : 2) && <li class="nd-more">+{n - (local.length ? 1 : 2)} more</li>}
-              </ul>
-            )}
-          </div>
+          </li>
         )
       })}
-    </div>
+    </ol>
   )
 }

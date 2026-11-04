@@ -897,3 +897,9 @@ button[disabled] { opacity: 0.4; }
 @container (max-width: 1000px) { .bar-volume { width: 120px; } }
 @container (max-width: 860px) { .bar-volume { display: none; } }
 @container (max-width: 620px) { .bar-controls .shuffle, .bar-controls [aria-label='Previous track'] { display: none; } }
+
+/* Tomorrow, under today in the same column. */
+.tl-scroll { display: flex; flex-direction: column; gap: 10px; }
+.tl-day { font-size: var(--fs-4); font-weight: 650; margin: 10px 0 0; padding-top: 12px; border-top: 1px solid var(--surface-2); }
+.tl-empty { font-size: var(--fs-2); color: var(--muted); padding-left: calc(3.6rem + 28px); }
+.agenda.panel:has(.scroll.more)::after { content: 'More below'; }

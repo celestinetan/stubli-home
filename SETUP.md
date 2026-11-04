@@ -8,7 +8,7 @@ for anyone who wants to change or extend the dashboard.
 | Area | What it shows | Source |
 |---|---|---|
 | Header | Clock; current weather with "before you go" advice; next 6 hours and 3 days | In Switzerland MeteoSwiss's forecast and warnings (unofficial app feed); elsewhere Open-Meteo |
-| Your day | Next up, today's events, the next 3 days, holidays, your own items | iCal links you add, OpenHolidays API |
+| Your day | Today as a timeline from now, then tomorrow; holidays and your own items | iCal links you add, OpenHolidays API |
 | News | Top stories and a card per topic; tap for sources and summary | RSS feeds you choose, grouped, ranked and translated by Gemini (optional) |
 | What's on | Your own items, plus optional sources (today, weekend, 7 days); free ones first | Your list; Kultur Züri and Zürich venues (optional) |
 | Ticker | Weather warnings, rain alerts and top headlines | The same news and weather data |

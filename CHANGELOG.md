@@ -2,7 +2,7 @@
 
 ## 1.1 – 4 November 2026
 
-- Your day redesigned as one timeline: a green Now mark, events as blocks in their calendar's colour (the next one larger), free time shown as space, all-day items as pills, and the next 3 days as three cards pinned at the bottom.
+- Your day redesigned as one timeline: a green Now mark, events as blocks in their calendar's colour (the next one larger), free time shown as space, all-day items as pills, and tomorrow below in the same detail (time, end, length, place).
 - Full music controls on the bottom bar: shuffle, previous, play, next and volume.
 - Type for the wall: Figtree throughout the dashboard (Literata only in the story panel and the Paper look), a sturdier clock and temperature, and darker secondary text.
 - Redesign after a UX review, for reading from across the room: a larger type scale, Your day wider with today in one sentence at the top, calmer colours (neutral news cards, a quiet ticker), one line-icon style, and What's on next to Your day in the evening.
