@@ -1,0 +1,42 @@
+# Update Stubli Home: brings your copy up to date with github.com/celestinetan/stubli-home.
+# On GitHub: Actions → Update Stubli Home → Run workflow. Cloudflare then redeploys by itself.
+# Your dashboard's name and storage (in wrangler.jsonc) are kept; your settings, calendars and
+# keys live in Cloudflare and are never touched.
+name: Update Stubli Home
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get the latest Stubli Home
+        run: git clone --depth 1 https://github.com/celestinetan/stubli-home.git "$RUNNER_TEMP/upstream"
+
+      - name: Copy it in, keeping this copy's name and storage
+        run: |
+          # Read this copy's dashboard name and storage id, however the file is laid out.
+          name=$(perl -0777 -ne 'print $1 if /"name"\s*:\s*"([^"]+)"/' wrangler.jsonc)
+          kv=$(perl -0777 -ne 'print $1 if /"binding"\s*:\s*"KV"\s*,\s*"id"\s*:\s*"([0-9a-f]+)"/ || /"id"\s*:\s*"([0-9a-f]+)"\s*,\s*"binding"\s*:\s*"KV"/' wrangler.jsonc)
+          echo "Keeping name '$name' and storage '${kv:-(none)}'"
+          rsync -a --delete --exclude .git --exclude .github --exclude docs "$RUNNER_TEMP/upstream/" ./
+          # Put them back into the new settings file.
+          [ -n "$name" ] && NAME="$name" perl -0777 -i -pe 's/"name"\s*:\s*"[^"]+"/"name": "$ENV{NAME}"/' wrangler.jsonc
+          [ -n "$kv" ] && KV="$kv" perl -0777 -i -pe 's/\{\s*"binding"\s*:\s*"KV"\s*\}/{ "binding": "KV", "id": "$ENV{KV}" }/' wrangler.jsonc
+          grep -E '"name"|"KV"' wrangler.jsonc
+
+      - name: Save the update
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then echo "Already up to date."; exit 0; fi
+          version=$(grep -m1 -oE '^## [^ ]+' CHANGELOG.md | cut -c4- || true)
+          git config user.name "Stubli Home updater"
+          git config user.email "updater@users.noreply.github.com"
+          git add -A
+          git commit -m "Update to Stubli Home ${version:-latest}"
+          git push
