@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'preact/hooks'
 import { api, report, store } from '../lib.js'
-import { Play, Pause, Next, Prev, Close, Bulb, Power, Music, Shuffle } from './icons.jsx'
+import { Play, Pause, Next, Prev, Close, Bulb, Power, Music, Shuffle, Speaker } from './icons.jsx'
 
 // ---------- data ----------
 
@@ -91,9 +91,9 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
             <>
               {/* The whole now-playing area opens the music panel. */}
               <button class="np-open" onClick={onMusic} aria-label="Open music">
-                <Art group={group} />
+                <span class="np-eq-box"><Eq on={playing(group)} /></span>
                 <span class="np-text">
-                  <span class="np-title-row"><Eq on={playing(group)} /><Marquee class="np-title" text={group.title || 'Nothing playing'} /></span>
+                  <Marquee class="np-title" text={group.title || 'Nothing playing'} />
                   <span class="np-room">{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
                 </span>
               </button>
@@ -154,6 +154,7 @@ const mmss = (ms) => (ms == null ? '' : `${Math.floor(ms / 60000)}:${String(Math
 export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] }) {
   const { sonos, group, groups, pick, sonosDo, busy, recents, remember, refreshSonos } = home
   useEffect(() => { refreshSonos() }, [])
+  const elapsed = useElapsed(group)
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState(() => (recents.length ? 'recent' : 'favourites'))
   const q = query.trim().toLowerCase()
@@ -183,36 +184,39 @@ export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] })
         {!sonos?.connected || !group ? <Connect svc="sonos" state={sonos} /> : (
           <div class="music-cols">
             <section class="now-playing">
-              {groups.length > 1 && (
+              {groups.length > 1 ? (
                 <div class="segmented rooms-pick">
                   {groups.map((g) => <button key={g.id} aria-pressed={g.id === group.id} onClick={() => pick(g.id)}>{g.name}</button>)}
                 </div>
-              )}
-              {groups.length === 1 && <p class="muted small np-where">Playing in {group.name}</p>}
-              <Cover src={group.art} query={group.artQuery} title={group.title} cls="np-art" size={48} />
-              <Eq on={playing(group)} big />
-              <h2 class="np-big-title">{group.title || 'Nothing playing'}</h2>
-              <p class="muted np-big-artist">{[group.artist, group.album].filter(Boolean).join(' · ') || group.source}</p>
+              ) : <p class="np-where">Playing in {group.name}</p>}
+              <div class={`np-stage ${playing(group) ? 'on' : ''}`}><Eq on={playing(group)} big /></div>
+              <div class="np-meta">
+                <h2 class="np-big-title">{group.title || 'Nothing playing'}</h2>
+                {group.artist && <p class="np-big-artist">{[group.artist, group.album].filter(Boolean).join(' · ')}</p>}
+                {group.source && group.source !== group.title && <p class="np-from">From {group.source}</p>}
+              </div>
               {group.duration > 0 && (
-                <div class="progress" aria-label="Track progress">
-                  <span style={{ width: `${Math.min(100, ((group.position ?? 0) / group.duration) * 100)}%` }} />
+                <div class="np-time">
+                  <div class="progress" aria-label="Track progress"><span style={{ width: `${Math.min(100, (elapsed / group.duration) * 100)}%` }} /></div>
+                  <span>{mmss(elapsed)}</span><span>−{mmss(Math.max(0, group.duration - elapsed))}</span>
                 </div>
               )}
               <div class="np-controls">
+                {group.canShuffle ? (
+                  <button class={`icon-btn shuffle ${group.shuffle ? 'on' : ''} ${busy(`${group.id}:shuffle`)}`} aria-label="Shuffle" aria-pressed={!!group.shuffle}
+                    onClick={() => sonosDo(group.id, 'shuffle', { on: !group.shuffle }, { shuffle: !group.shuffle })}><Shuffle size={22} /></button>
+                ) : <span />}
                 <button class="icon-btn" aria-label="Previous" onClick={() => sonosDo(group.id, 'previous')}><Prev size={28} /></button>
                 <button class={`icon-btn huge ${busy(`${group.id}:toggle`)}`} aria-label={playing(group) ? 'Pause' : 'Play'}
                   onClick={() => sonosDo(group.id, 'toggle', null, { state: playing(group) ? 'PLAYBACK_STATE_PAUSED' : 'PLAYBACK_STATE_PLAYING' })}>
                   {playing(group) ? <Pause size={32} /> : <Play size={32} />}
                 </button>
                 <button class="icon-btn" aria-label="Next" onClick={() => sonosDo(group.id, 'next')}><Next size={28} /></button>
-                {group.canShuffle && (
-                  <button class={`icon-btn shuffle ${group.shuffle ? 'on' : ''} ${busy(`${group.id}:shuffle`)}`} aria-label="Shuffle" aria-pressed={!!group.shuffle}
-                    onClick={() => sonosDo(group.id, 'shuffle', { on: !group.shuffle }, { shuffle: !group.shuffle })}><Shuffle size={24} /></button>
-                )}
+                <span />
               </div>
-              <Slider label="Volume" value={group.volume ?? 0} onCommit={(v) => sonosDo(group.id, 'volume', { volume: v }, { volume: v })} />
+              <div class="np-volume"><Speaker size={20} /><Slider label="Volume" value={group.volume ?? 0} onCommit={(v) => sonosDo(group.id, 'volume', { volume: v }, { volume: v })} /></div>
               {group.next?.title && (
-                <p class="up-next"><span class="muted">Up next</span> {group.next.title}{group.next.artist ? ` — ${group.next.artist}` : ''}</p>
+                <p class="up-next"><span class="up-next-label">Up next</span><span class="up-next-title">{group.next.title}{group.next.artist ? ` · ${group.next.artist}` : ''}</span></p>
               )}
             </section>
 
@@ -225,15 +229,20 @@ export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] })
                 <button aria-pressed={tab === 'favourites'} onClick={() => setTab('favourites')}>Favourites · {favs.length}</button>
                 {tabletLinks.length > 0 && <button aria-pressed={tab === 'tablet'} onClick={() => setTab('tablet')}>On this tablet · {onTablet.length}</button>}
               </div>
-              <div class="tiles">
+              <div class="picks">
                 {items.length === 0 && <p class="muted">{q ? `Nothing matches “${query}”.` : tab === 'tablet' ? 'Nothing yet. Add YouTube or YouTube Music links in Settings → Music.' : tab === 'recent' ? 'Nothing yet. What you play from here, and favourites you play in the Sonos app, show up here.' : 'No favourites yet. Add them in the Sonos app.'}</p>}
-                {items.map((x) => (
-                  <button class={`tile ${tab === 'tablet' ? '' : busy(`${group.id}:${x.kind}`)}`} key={`${x.kind}${x.id}`} onClick={() => play(x)}>
-                    <Cover src={x.image} title={x.name} cls="tile-art" ph="tile-ph" />
-                    <span class="tile-name">{x.name}</span>
-                    {(x.description || x.tracks) && <span class="tile-sub">{x.description || `${x.tracks} tracks`}</span>}
-                  </button>
-                ))}
+                {items.map((x) => {
+                  const now = tab !== 'tablet' && x.name.toLowerCase() === group.source?.toLowerCase()
+                  return (
+                    <button class={`pick-row ${now ? 'now' : ''} ${tab === 'tablet' ? '' : busy(`${group.id}:${x.kind}`)}`} key={`${x.kind}${x.id}`} onClick={() => play(x)}>
+                      <span class="pick-text">
+                        <span class="pick-name">{x.name}</span>
+                        {(x.description || x.tracks) && <span class="pick-sub">{x.description || `${x.tracks} tracks`}</span>}
+                      </span>
+                      {now ? <span class="pick-now"><Eq on={playing(group)} /> Playing</span> : <span class="pick-play" aria-hidden="true"><Play size={18} /></span>}
+                    </button>
+                  )
+                })}
               </div>
             </section>
           </div>
@@ -305,68 +314,24 @@ function Connect({ svc, state }) {
   return <a class="btn" href={`/auth/${svc}/start`}>Connect {name}</a>
 }
 
-// Covers come as https links or through this dashboard's own /api/art (see worker/sonos.ts).
-// Without one, the tablet looks the song or album up in Apple's free iTunes Search; failing that
-// (YouTube mixes, radio), it draws a cover from the title: soft colours and its first letter.
-const safeArt = (src) => (src && (src.startsWith('https://') || src.startsWith('/api/art')) ? src : null)
-
-const fold = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-const tidy = (s) => (s ?? '').replace(/\s*[([][^)\]]*[)\]]/g, '').split(/\s+[|·•–-]\s+/)[0].trim()
-const looked = store.get('coverLookups', {}) // query → cover link ('' = none found), kept on this tablet
-function useLookup(q) {
-  const key = q ? `${fold(q.artist)}|${fold(q.album || q.title)}` : null
-  const [url, setUrl] = useState(key ? looked[key] : undefined)
-  useEffect(() => {
-    if (!key) return setUrl(undefined)
-    if (key in looked) return setUrl(looked[key])
-    setUrl(undefined)
-    const entity = q.album ? 'album' : 'song'
-    const term = [tidy(q.artist), tidy(q.album || q.title)].filter(Boolean).join(' ')
-    if (!term) return
-    let live = true
-    fetch(`https://itunes.apple.com/search?${new URLSearchParams({ term, media: 'music', entity, limit: '3' })}`)
-      .then((r) => r.json())
-      .then((d) => {
-        // Only a match by the same artist counts, so a wrong cover never shows.
-        const a = fold(tidy(q.artist))
-        const hit = (d.results ?? []).find((x) => !a || fold(x.artistName).includes(a) || a.includes(fold(x.artistName)))
-        looked[key] = hit?.artworkUrl100?.replace(/\/\d+x\d+bb\./, '/600x600bb.') ?? ''
-        const keys = Object.keys(looked)
-        if (keys.length > 200) delete looked[keys[0]]
-        store.set('coverLookups', looked)
-        if (live) setUrl(looked[key])
-      })
-      .catch(() => {})
-    return () => { live = false }
-  }, [key])
-  return url
-}
-
-function Drawn({ title, cls, size }) {
-  const t = (title ?? '').trim()
-  let h = 0
-  for (const ch of t) h = (h * 31 + ch.charCodeAt(0)) % 360
-  const letter = [...tidy(t).replace(/^(the|a|an)\s+/i, '')].find((c) => /\p{L}|\p{N}/u.test(c))
-  return (
-    <span class={`${cls} drawn`} style={{ '--h1': h, '--h2': (h + 50) % 360 }} aria-hidden="true">
-      {letter ? <span class="drawn-letter" style={{ fontSize: `${size * 1.6}px` }}>{letter.toUpperCase()}</span> : <Music size={size} />}
-    </span>
-  )
-}
-
-function Cover({ src, query, title, cls, ph = 'placeholder', size = 22 }) {
-  const [failed, setFailed] = useState(null)
-  const found = useLookup(safeArt(src) && failed !== src ? null : query)
-  const url = safeArt(src) && failed !== src ? src : found
-  if (url && failed !== url) return <img class={cls} src={url} alt="" onError={() => setFailed(url)} />
-  return title ? <Drawn title={title} cls={cls} size={size} /> : <span class={`${cls} ${ph}`}><Music size={size} /></span>
-}
-const Art = ({ group }) => <Cover src={group.art} query={group.artQuery} title={group.title} cls="art" />
-
 // A visual equaliser: bars that move while music plays. Sonos doesn't share the sound itself,
 // so the bars are a gentle animation, not a reading of the music; they rest when paused.
-function Eq({ on, big }) {
-  return <span class={`eq ${on ? 'on' : ''} ${big ? 'big' : ''}`} aria-hidden="true"><i /><i /><i /><i />{big && <><i /><i /><i /></>}</span>
+function Eq({ on, big, bars = big ? 15 : 4 }) {
+  return <span class={`eq ${on ? 'on' : ''} ${big ? 'big' : ''}`} aria-hidden="true">{Array.from({ length: bars }, (_, i) => <i key={i} style={{ '--d': `${0.8 + ((i * 37) % 5) * 0.12}s`, '--dl': `${-i * 0.17}s` }} />)}</span>
+}
+
+// Track time, counting on between Sonos updates while playing.
+function useElapsed(group) {
+  const [now, setNow] = useState(Date.now())
+  const [base, setBase] = useState({ pos: group?.position ?? 0, at: Date.now() })
+  useEffect(() => setBase({ pos: group?.position ?? 0, at: Date.now() }), [group?.position, group?.title])
+  useEffect(() => {
+    if (!playing(group)) return
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [group?.state])
+  const pos = base.pos + (playing(group) ? Math.max(0, now - base.at) : 0)
+  return Math.min(pos, group?.duration ?? pos)
 }
 
 // Range slider that updates on screen while dragging and sends once on release.

@@ -9,6 +9,7 @@ export const Pause = (p) => <Svg {...p}><rect x="6" y="4.5" width="4" height="15
 export const Next = (p) => <Svg {...p}><path d="M5 5v14l10-7z" fill="currentColor" stroke="none" /><path d="M19 5v14" /></Svg>
 export const Prev = (p) => <Svg {...p}><path d="M19 5v14L9 12z" fill="currentColor" stroke="none" /><path d="M5 5v14" /></Svg>
 export const Shuffle = (p) => <Svg {...p}><path d="M16 4h4v4M4 20L20 4M20 16v4h-4M15 15l5 5M4 4l5 5" /></Svg>
+export const Speaker = (p) => <Svg {...p}><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke="none" /><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" /></Svg>
 export const ChevronUp = (p) => <Svg {...p}><path d="M6 15l6-6 6 6" /></Svg>
 export const Close = (p) => <Svg {...p}><path d="M6 6l12 12M18 6L6 18" /></Svg>
 export const Gear = (p) => <Svg {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></Svg>

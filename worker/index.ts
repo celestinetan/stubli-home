@@ -9,7 +9,7 @@ import { fetchEvents } from './events'
 import { fetchNews, collectNewsBatch, parseFeed } from './news'
 import { VENUES, inReach } from './venues'
 import { startUrl, finish, type Provider } from './oauth'
-import { sonosProvider, sonosState, sonosAction, artResponse } from './sonos'
+import { sonosProvider, sonosState, sonosAction } from './sonos'
 import { hueProvider, hueState, hueAction, hueRegisterApp } from './hue'
 import { applySettings, readSaved, saveSettings, resetSettings, canEdit, DEFAULTS, type Saved } from './settings'
 
@@ -294,7 +294,6 @@ const fail = (c: any, e: unknown) => {
   return c.json({ error: msg }, msg === 'not_connected' ? 409 : 502)
 }
 
-app.get('/api/art', (c) => artResponse(c.req.query('u')).catch(() => new Response(null, { status: 404 })))
 app.get('/api/sonos', async (c) => { if (config.modules.music === false) return c.json({ configured: false, connected: false }); try { return c.json(await sonosState(c.env, c.req.query('fresh') === '1')) } catch (e) { return fail(c, e) } })
 app.post('/api/sonos/:group/:action', async (c) => {
   try {

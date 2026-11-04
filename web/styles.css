@@ -428,35 +428,14 @@ input[type='range']::-webkit-slider-thumb {
 .np-open .np-text { display: grid; min-width: 0; }
 .music-sheet { max-width: 1000px; height: 86%; display: flex; flex-direction: column; }
 .music-cols { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 32px; min-height: 0; flex: 1; }
-.now-playing { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; min-height: 0; }
 .rooms-pick { width: 100%; }
-.np-where { align-self: center; }
-.np-art { width: min(240px, 34vh); aspect-ratio: 1; border-radius: 16px; object-fit: cover; background: var(--surface-2); display: grid; place-items: center; color: var(--muted); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-.np-big-title { font-size: var(--fs-5) !important; margin: 6px 0 0 !important; justify-content: center; display: block !important; line-height: 1.2; }
-.np-big-artist { font-size: var(--fs-3); }
-.progress { width: 100%; height: 4px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-.progress span { display: block; height: 100%; background: var(--accent); }
-.np-controls { display: flex; align-items: center; justify-content: center; gap: 24px; }
 .icon-btn.huge { width: 72px; height: 72px; background: var(--accent); color: var(--accent-ink); }
-.now-playing .slider { width: 100%; flex: none; }
-.up-next { font-size: var(--fs-3); margin-top: 4px; }
-.up-next .muted { font-size: var(--fs-2); font-weight: 600; margin-right: 6px; }
 .library { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .library h2 { margin-bottom: 0 !important; }
 .search {
   font: inherit; font-size: var(--fs-3); width: 100%; min-height: 48px; padding: 0 16px; border-radius: 12px;
   border: 1px solid var(--line); background: var(--bg); color: var(--ink); -webkit-appearance: none; -webkit-user-select: text; user-select: text;
 }
-.tiles { display: grid; gap: 4px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; align-content: start; flex: 1; min-height: 0; }
-.tile {
-  display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; align-items: center;
-  text-align: left; padding: 6px 8px; border-radius: 12px; min-height: 64px;
-}
-.tile:active { background: var(--surface-2); }
-.tile img, .tile-ph { grid-row: 1 / 3; width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: var(--surface-2); display: grid; place-items: center; color: var(--muted); }
-.tile-name { font-size: var(--fs-3); font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: end; }
-.tile-sub { font-size: var(--fs-2); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: start; }
-.tile:not(:has(.tile-sub)) .tile-name { grid-row: 1 / 3; align-self: center; }
 
 /* ---------- lights panel: whole home ---------- */
 .whole-home { margin-bottom: 14px; display: grid; gap: 10px; }
@@ -471,7 +450,6 @@ input[type='range']::-webkit-slider-thumb {
 
 @container (max-width: 860px) {
   .music-cols { grid-template-columns: 1fr; overflow-y: auto; }
-  .np-art { width: 160px; }
 }
 
 /* ---------- what's on ---------- */
@@ -585,7 +563,7 @@ button.now-icon:active { transform: scale(0.94); }
 .event-item::after { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); font-size: var(--fs-4); }
 .story { position: relative; padding-right: 18px; }
 .story::after { position: absolute; right: 2px; top: 14px; font-size: var(--fs-4); }
-.cat-card:active, .event-item:active, .story:active, .tile:active, .preset:active, .chip:active { transform: scale(0.98); opacity: 0.85; }
+.cat-card:active, .event-item:active, .story:active, .preset:active, .chip:active { transform: scale(0.98); opacity: 0.85; }
 .preset.active { outline: 3px solid var(--accent); outline-offset: -3px; }
 .chip.on[aria-pressed='true'] { background: var(--on); color: var(--on-ink); }
 
@@ -699,27 +677,12 @@ button.now-icon:active { transform: scale(0.94); }
 .music-pick { max-width: 560px; }
 
 /* Visual equaliser: a gentle animation while music plays (Sonos doesn't share the sound itself). */
-.np-title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.np-title-row .np-title, .np-title-row .marquee { min-width: 0; flex: 1; }
 .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; flex: none; }
 .eq i { width: 3px; height: 30%; border-radius: 2px; background: var(--accent); transition: height .4s ease; }
-.eq.big { height: 28px; gap: 4px; margin: 2px auto -4px; }
-.eq.big i { width: 5px; }
-.eq.on i { animation: eq-bar 1.1s ease-in-out infinite alternate; }
-.eq.on i:nth-child(2) { animation-duration: .8s; animation-delay: -.3s; }
-.eq.on i:nth-child(3) { animation-duration: 1.3s; animation-delay: -.6s; }
-.eq.on i:nth-child(4) { animation-duration: .95s; animation-delay: -.15s; }
-.eq.on i:nth-child(5) { animation-duration: 1.2s; animation-delay: -.45s; }
-.eq.on i:nth-child(6) { animation-duration: .85s; animation-delay: -.7s; }
-.eq.on i:nth-child(7) { animation-duration: 1.05s; animation-delay: -.25s; }
+.eq.on i { animation: eq-bar var(--d, 1s) ease-in-out var(--dl, 0s) infinite alternate; }
 @keyframes eq-bar { 0% { height: 20%; } 50% { height: 85%; } 100% { height: 45%; } }
 @media (prefers-reduced-motion: reduce) { .eq.on i { animation: none; height: 60%; } }
 
-/* Shuffle sits at the right edge so play stays centred; green when on. */
-.np-controls { position: relative; align-self: stretch; width: 100%; }
-.np-controls .shuffle { position: absolute; right: 0; color: var(--muted); }
-.np-controls .shuffle.on { color: var(--accent); }
-.np-controls .shuffle.on::after { content: ''; position: absolute; bottom: 4px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); }
 
 /* Music and lights panels slide up from the bottom bar, and back down when closed. */
 .overlay.slide { animation: fade 0.3s ease-out; }
@@ -731,8 +694,38 @@ button.now-icon:active { transform: scale(0.94); }
 @keyframes fade-out { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .overlay.slide, .overlay.slide > .sheet { animation: none; } }
 
-/* A cover drawn from the title when there's no picture (YouTube mixes, radio). */
-.drawn { display: grid; place-items: center; overflow: hidden; color: rgba(255, 255, 255, 0.92);
-  background: linear-gradient(135deg, hsl(var(--h1) 38% 58%), hsl(var(--h2) 42% 42%)); }
-.drawn-letter { font-family: Literata, Georgia, serif; font-weight: 600; line-height: 1; }
-.tile .drawn { grid-row: 1 / 3; width: 52px; height: 52px; border-radius: 8px; }
+/* ---------- music panel: no album covers; the equaliser and the title carry it ---------- */
+.now-playing { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.np-where { font-size: var(--fs-2); color: var(--muted); }
+.np-stage { display: grid; place-items: center; height: min(200px, 26vh); border-radius: 18px; background: var(--surface-2); transition: background .4s ease; }
+.np-stage.on { background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
+.eq.big { height: 62%; width: 72%; gap: 6px; justify-content: space-between; }
+.eq.big i { flex: 1; max-width: 12px; border-radius: 6px; }
+.np-meta { display: grid; gap: 4px; }
+.np-big-title { font-family: Literata, Georgia, serif; font-size: clamp(1.625rem, 3.2vw, 2.25rem) !important; font-weight: 600; line-height: 1.15; margin: 0 !important; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.np-big-artist { font-size: var(--fs-4); color: var(--ink); opacity: .8; }
+.np-from { font-size: var(--fs-2); color: var(--muted); }
+.np-time { display: grid; grid-template-columns: 1fr 1fr; row-gap: 6px; font-size: var(--fs-2); color: var(--muted); font-variant-numeric: tabular-nums; }
+.np-time .progress { grid-column: 1 / -1; }
+.np-time span:last-child { text-align: right; }
+.progress { width: 100%; height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--accent); transition: width 1s linear; }
+.np-controls { display: grid; grid-template-columns: 1fr auto auto auto 1fr; align-items: center; justify-items: center; gap: 20px; }
+.np-controls .shuffle { justify-self: start; color: var(--muted); }
+.np-controls .shuffle.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.np-volume { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.np-volume .slider { flex: 1; }
+.up-next { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); margin-top: auto; }
+.up-next-label { font-size: var(--fs-1); color: var(--muted); font-weight: 600; }
+.up-next-title { font-size: var(--fs-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.picks { display: grid; gap: 2px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; align-content: start; flex: 1; min-height: 0; }
+.pick-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 8px 12px; border-radius: 12px; text-align: left; }
+.pick-row:active { background: var(--surface-2); transform: scale(0.99); }
+.pick-row.now { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.pick-text { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.pick-name { font-size: var(--fs-3); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick-sub { font-size: var(--fs-2); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick-play { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: var(--muted); flex: none; }
+.pick-row:active .pick-play, .pick-row.pending .pick-play { color: var(--accent-ink); background: var(--accent); }
+.pick-now { display: flex; align-items: center; gap: 8px; font-size: var(--fs-2); color: var(--accent); font-weight: 600; flex: none; }
+.np-eq-box { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; background: var(--surface-2); flex: none; }

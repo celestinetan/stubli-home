@@ -140,8 +140,8 @@ const hue = {
 }
 const sonos = {
   configured: true, connected: true,
-  groups: [{ id: 'g1', name: 'Living room', state: 'PLAYBACK_STATE_PLAYING', title: 'Morning light', artist: 'The Example Ensemble', album: 'Sample Sessions', art: null, artQuery: { artist: 'The Example Ensemble', album: 'Sample Sessions', title: 'Morning light' }, volume: 22, muted: false, source: 'Favourite', position: 64_000, duration: 212_000, next: { title: 'Window seat', artist: 'The Example Ensemble' }, shuffle: false, canShuffle: true }],
-  favorites: ['Sunday jazz', 'Focus piano', 'Radio Example'].map((name, i) => ({ id: `f${i}`, name, image: '', description: 'Sample favourite' })),
+  groups: [{ id: 'g1', name: 'Living room', state: 'PLAYBACK_STATE_PLAYING', title: 'Morning light', artist: 'The Example Ensemble', album: 'Sample Sessions', volume: 22, muted: false, source: 'Favourite', position: 64_000, duration: 212_000, next: { title: 'Window seat', artist: 'The Example Ensemble' }, shuffle: false, canShuffle: true }],
+  favorites: ['Sunday jazz', 'Focus piano', 'Radio Example'].map((name, i) => ({ id: `f${i}`, name, description: 'Sample favourite' })),
   playlists: [],
 }
 
