@@ -97,11 +97,20 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
                   <span class="np-room">{playing(group) ? '' : 'Paused · '}{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
                 </span>
               </button>
-              <button class={`icon-btn big ${busy(`${group.id}:toggle`)}`} aria-label={playing(group) ? 'Pause' : 'Play'}
-                onClick={() => sonosDo(group.id, 'toggle', null, { state: playing(group) ? 'PLAYBACK_STATE_PAUSED' : 'PLAYBACK_STATE_PLAYING' })}>
-                {playing(group) ? <Pause /> : <Play />}
-              </button>
-              <button class="icon-btn" aria-label="Next track" onClick={() => sonosDo(group.id, 'next')}><Next /></button>
+              {/* Full controls, as in the music panel: shuffle, previous, play, next and volume. */}
+              <span class="bar-controls">
+                {group.canShuffle && (
+                  <button class={`icon-btn shuffle ${group.shuffle ? 'on' : ''} ${busy(`${group.id}:shuffle`)}`} aria-label="Shuffle" aria-pressed={!!group.shuffle}
+                    onClick={() => sonosDo(group.id, 'shuffle', { on: !group.shuffle }, { shuffle: !group.shuffle })}><Shuffle size={20} /></button>
+                )}
+                <button class="icon-btn" aria-label="Previous track" onClick={() => sonosDo(group.id, 'previous')}><Prev /></button>
+                <button class={`icon-btn big ${busy(`${group.id}:toggle`)}`} aria-label={playing(group) ? 'Pause' : 'Play'}
+                  onClick={() => sonosDo(group.id, 'toggle', null, { state: playing(group) ? 'PLAYBACK_STATE_PAUSED' : 'PLAYBACK_STATE_PLAYING' })}>
+                  {playing(group) ? <Pause /> : <Play />}
+                </button>
+                <button class="icon-btn" aria-label="Next track" onClick={() => sonosDo(group.id, 'next')}><Next /></button>
+              </span>
+              <span class="bar-volume"><Speaker size={18} /><Slider label="Volume" value={group.volume ?? 0} onCommit={(v) => sonosDo(group.id, 'volume', { volume: v }, { volume: v })} /></span>
             </>
           ) : <span class="muted small">No speakers found</span>}
       </div>
@@ -353,13 +362,21 @@ function Slider({ value, onCommit, label, min = 0 }) {
 // the bar shows that something's on; paused, it stands still (cut short with "…" if too long).
 // With Reduce Motion on, it never moves.
 function Marquee({ text, class: cls, run }) {
+  const box = useRef(null)
   const inner = useRef(null)
-  const [w, setW] = useState(0)
-  useEffect(() => { setW(inner.current?.offsetWidth ?? 0) }, [text, run])
+  const [size, setSize] = useState({ w: 0, box: 0 })
+  useEffect(() => {
+    const measure = () => setSize({ w: inner.current?.offsetWidth ?? 0, box: box.current?.clientWidth ?? 0 })
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [text, run])
+  // The gap after the title is as wide as the space it scrolls in, so only one copy shows at a time.
+  const gap = Math.max(48, size.box - size.w + 48)
   return (
-    <span class={`${cls} marquee ${run ? 'running' : ''}`} title={text}>
+    <span class={`${cls} marquee ${run ? 'running' : ''}`} ref={box} title={text}>
       {run ? (
-        <span class="marquee-track" style={{ '--dur': `${Math.max(8, (w + 48) / 32)}s` }}>
+        <span class="marquee-track" style={{ '--gap': `${gap}px`, '--dur': `${Math.max(8, (size.w + gap) / 32)}s` }}>
           <span ref={inner}>{text}</span><span aria-hidden="true">{text}</span>
         </span>
       ) : <span ref={inner} class="marquee-still">{text}</span>}

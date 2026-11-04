@@ -30,11 +30,12 @@ export function Header({ now, weather, hideWeather, location, onSettings }) {
                 <span class="now-hl">H {round(w.daily[0]?.max)}° · L {round(w.daily[0]?.min)}°</span>
               </span>
             </div>
+            {/* A warning, or up to two short tips, side by side under the temperature. */}
             {(w.warnings?.[0] || w.advice?.[0]) && (
-              <div class={`now-advice ${w.warnings?.[0] ? 'warn' : ''}`}>
+              <div class="now-tips">
                 {w.warnings?.[0]
-                  ? <>⚠ {w.warnings[0].type} warning · level {w.warnings[0].level}</>
-                  : <><span aria-hidden="true">{w.advice[0].icon}</span> {w.advice[0].text}</>}
+                  ? <span class="now-advice warn">⚠ {w.warnings[0].type} warning · level {w.warnings[0].level}</span>
+                  : w.advice.slice(0, 2).map((a) => <span class="now-advice" key={a.text}><span aria-hidden="true">{a.icon}</span> {a.text}</span>)}
               </div>
             )}
             <div class="now-facts">
@@ -95,8 +96,8 @@ export function AdviceStrip({ weather }) {
   const w = weather?.data
   const advice = w?.advice ?? []
   const warnings = w?.warnings ?? []
-  // The first item already shows in the header; the strip only holds what's left over.
-  const rest = [...warnings.slice(1).map((x) => ({ warn: x })), ...advice.slice(warnings.length ? 0 : 1).map((a) => ({ advice: a }))]
+  // The header already shows a warning or two tips; the strip only holds what's left over.
+  const rest = [...warnings.slice(1).map((x) => ({ warn: x })), ...advice.slice(warnings.length ? 0 : 2).map((a) => ({ advice: a }))]
   if (!rest.length) return null
   return (
     <div class="strip" aria-label="Before you go">

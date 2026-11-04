@@ -1,28 +1,45 @@
-import { fmtTime, fmtDayLong, fmtDay, dayKey, isoDay, weekdayOf, activeOn } from '../lib.js'
+import { fmtTime, fmtDay, isoDay, weekdayOf, activeOn } from '../lib.js'
 import { Updated } from './Updated.jsx'
-import { ItemIcon } from './icons.jsx'
 
 const DAY = 86_400_000
+const MIN = 60_000
 
-// Your day: next up, today's events, the next 3 days at a glance, and local holidays.
+// Your day, in one visual language: a short line for what the timeline can't show (rain, a
+// holiday), today's all-day items as pills, the rest of today as a timeline from now (events as
+// blocks tinted in their calendar's colour, free time as space), and the next 3 days as cards.
 export function Agenda({ now, calendar, local, weather, place = '', extra }) {
   const c = calendar?.data
   const today = isoDay(now)
+  const items = local?.data?.items ?? []
+  // Holidays, markets and your own non-free items; free ones are listed in What's on.
+  const localOn = (iso, wd) => items.filter((it) => !it.free && activeOn(it, iso, wd))
 
-  let yourDay
-  if (!c) yourDay = <p class="muted">{calendar?.error ? 'Your calendar didn\'t load. Check the link in Settings, or wait a moment.' : 'Loading calendar…'}</p>
-  else if (!c.configured) yourDay = <p class="muted">No calendars yet. Add one in Settings → Calendars &amp; keys: any iCal link from Proton, Google, iCloud or Outlook.</p>
+  let body
+  if (!c) body = <p class="muted">{calendar?.error ? 'Your calendar didn\'t load. Check the link in Settings, or wait a moment.' : 'Loading calendar…'}</p>
+  else if (!c.configured) body = <p class="muted">No calendars yet. Add one in Settings → Calendars &amp; keys: any iCal link from Proton, Google, iCloud or Outlook.</p>
   else {
     const upcoming = c.events.filter((e) => e.end > now)
     // Events on a day, including all-day and multi-day ones that started earlier.
     const on = (key) => upcoming.filter((e) => isoDay(e.start) === key || (isoDay(e.start) < key && isoDay(e.end - 1) >= key))
-    const next = upcoming.find((e) => !e.allDay && e.start - now < 12 * 3600_000)
-    const todays = on(today).filter((e) => e !== next)
-    yourDay = (
+    const todays = on(today)
+    const timed = todays.filter((e) => !e.allDay)
+    const pills = [...todays.filter((e) => e.allDay).map((e) => ({ key: e.title, title: e.title, color: e.color })),
+      ...localOn(today, weekdayOf(now)).map((it) => ({ key: it.title, title: it.title, note: [it.time, it.place].filter(Boolean).join(' · ') }))]
+    const days = [1, 2, 3].map((d) => {
+      const t = now + d * DAY
+      const iso = isoDay(t)
+      return { d, t, events: on(iso), local: localOn(iso, weekdayOf(t)) }
+    })
+    body = (
       <>
-        {next && <NextUp event={next} now={now} />}
-        <Day label="Today" events={todays} now={now} empty={next ? 'Nothing else today' : 'Nothing scheduled'} />
-        <Outlook days={[1, 2, 3].map((d) => ({ d, t: now + d * DAY, events: on(isoDay(now + d * DAY)) }))} />
+        {pills.length > 0 && (
+          <ul class="pills" aria-label="All day">
+            {pills.map((p) => <li class="pill" key={p.key} style={p.color ? { '--cal': p.color } : null}>{p.title}{p.note && <span class="muted"> · {p.note}</span>}</li>)}
+          </ul>
+        )}
+        {/* Only today scrolls; the next 3 days stay pinned at the bottom. */}
+        <div class="scroll tl-scroll"><Timeline now={now} events={timed} /></div>
+        <NextDays days={days} />
         {c.calendars.filter((x) => x.error).map((x) => (
           <p class="muted small" key={x.name}>⚠ {x.name} couldn't be loaded</p>
         ))}
@@ -33,136 +50,111 @@ export function Agenda({ now, calendar, local, weather, place = '', extra }) {
   return (
     <section class="panel agenda">
       <h2>Your day <Updated slot={calendar} /></h2>
-      <div class="scroll">
-        <TodayLine now={now} calendar={c} local={local?.data?.items} weather={weather?.data} />
-        {yourDay}
-        <LocalToday now={now} items={local?.data?.items} place={place} />
+      <div class="agenda-body">
+        <TodayLine weather={weather?.data} />
+        {body}
       </div>
       {extra}
     </section>
   )
 }
 
-function Day({ label, events, now, empty, showDay }) {
+// Only what the timeline can't show: rain to come, or showers later.
+function TodayLine({ weather }) {
+  const text = weather?.rain?.text ?? (weather?.daily?.[0]?.pop >= 50 ? 'Showers likely later' : null)
+  return text ? <p class="today-line">{text}</p> : null
+}
+
+const hm = (ms) => {
+  const m = Math.round(ms / MIN)
+  return m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)} h ${m % 60} min`
+}
+
+// The rest of today, from now: a rail of times, a green "now" mark at the top, events as tinted
+// blocks (taller when longer), and free stretches of an hour or more shown as "Free until …".
+// The next event is the first block, larger: there's no separate "next up" card.
+function Timeline({ now, events }) {
+  const rows = []
+  let cursor = now
+  events.forEach((e, i) => {
+    const gap = e.start - cursor
+    if (gap >= 60 * MIN) rows.push({ kind: 'free', key: `f${i}`, from: cursor, to: e.start })
+    rows.push({ kind: 'event', key: `${e.calendar}${e.start}${e.title}`, e, first: i === 0 })
+    cursor = Math.max(cursor, e.end)
+  })
+  const endOfDay = new Date(now).setHours(23, 59, 0, 0)
+  const freeEvening = endOfDay - cursor >= 60 * MIN
+
   return (
-    <div class="agenda-day">
-      <h3>{label}</h3>
-      {events.length === 0 ? <p class="muted">{empty}</p> : (
-        <ul>
-          {events.map((e) => {
-            const live = e.start <= now && e.end > now && !e.allDay
-            return (
-              <li class={`event ${live ? 'live' : ''}`} key={`${e.calendar}${e.start}${e.title}`} style={{ '--cal': e.color }}>
-                <span class="event-time">
-                  {showDay && <span class="event-day">{fmtDayLong(e.start)}</span>}
-                  {e.allDay ? 'All day' : live ? `Now – ${fmtTime(e.end)}` : `${fmtTime(e.start)} – ${fmtTime(e.end)}`}
-                </span>
-                <span class="event-title">{e.title}</span>
-                {e.location && <span class="event-loc muted">{e.location}</span>}
-              </li>
-            )
-          })}
-        </ul>
+    <ol class="timeline" aria-label="Today">
+      <li class="tl-row tl-now">
+        <span class="tl-time">{fmtTime(now)}</span>
+        <span class="tl-rail"><i /></span>
+        <span class="tl-now-label">Now</span>
+      </li>
+      {rows.map((r) => r.kind === 'free' ? (
+        <li class="tl-row tl-free" key={r.key}>
+          <span class="tl-time" />
+          <span class="tl-rail" />
+          <span class="tl-free-label">Free for {hm(r.to - r.from)}</span>
+        </li>
+      ) : <EventRow key={r.key} e={r.e} now={now} first={r.first} />)}
+      {freeEvening && (
+        <li class="tl-row tl-free tl-end">
+          <span class="tl-time" />
+          <span class="tl-rail" />
+          <span class="tl-free-label">{events.length ? `Free from ${fmtTime(cursor)}` : 'Nothing else today'}</span>
+        </li>
       )}
-    </div>
+    </ol>
   )
 }
 
-// Today in one sentence, for a glance from across the room: how much is left on the calendar,
-// rain to come, and a free museum day if there is one.
-function TodayLine({ now, calendar, local, weather }) {
-  const today = isoDay(now)
-  const parts = []
-  if (calendar?.configured) {
-    const left = calendar.events.filter((e) => e.end > now && isoDay(e.start) === today && !e.allDay).length
-    parts.push(left ? `${left} more event${left > 1 ? 's' : ''} today` : 'Nothing else on the calendar today')
-  }
-  if (weather?.rain) parts.push(weather.rain.text.replace(/^Rain/, 'rain'))
-  else if (weather?.daily?.[0]?.pop >= 50) parts.push('showers likely later')
-  const free = (local ?? []).find((it) => it.free && activeOn(it, today, weekdayOf(now)) && !(it.time && it.time.slice(6) < fmtTime(now)))
-  if (free) parts.push(`free: ${free.place ?? free.title}`)
-  if (!parts.length) return null
-  const text = parts.join(' · ')
-  return <p class="today-line">{text.charAt(0).toUpperCase() + text.slice(1)}</p>
-}
-
-// The next 3 days, one compact row each: up to 3 events, then how many more.
-function Outlook({ days }) {
+function EventRow({ e, now, first }) {
+  const live = e.start <= now
+  const mins = Math.round((e.start - now) / MIN)
+  const when = live ? `Now · until ${fmtTime(e.end)}` : mins <= 90 ? `In ${hm(e.start - now)} · until ${fmtTime(e.end)}` : `Until ${fmtTime(e.end)}`
+  // Longer events stand taller, up to a limit, so the day's shape shows at a glance.
+  const size = Math.min(3, Math.max(0, (e.end - e.start) / (60 * MIN) - 0.5))
   return (
-    <div class="agenda-day outlook">
-      <h3>Next 3 days</h3>
-      <ul>
-        {days.map(({ d, t, events }) => (
-          <li class="outlook-day" key={d}>
-            <span class="outlook-label">{d === 1 ? 'Tomorrow' : fmtDay(t)}</span>
-            <span class="outlook-events">
-              {events.length === 0 ? <span class="muted">Nothing scheduled</span> : events.slice(0, 3).map((e) => (
-                <span class="outlook-event" key={`${e.calendar}${e.start}${e.title}`} style={{ '--cal': e.color }}>
-                  {!e.allDay && <span class="outlook-time">{fmtTime(e.start)}</span>}{e.title}
-                </span>
-              ))}
-              {events.length > 3 && <span class="muted small">+{events.length - 3} more</span>}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <li class={`tl-row tl-event ${first ? 'next' : ''} ${live ? 'live' : ''} ${mins <= 15 && !live ? 'soon' : ''}`} style={{ '--cal': e.color, '--size': size }}>
+      <span class="tl-time">{live ? 'Now' : fmtTime(e.start)}</span>
+      <span class="tl-rail"><i /></span>
+      <span class="tl-block">
+        <span class="tl-title">{e.title}</span>
+        <span class="tl-meta">{when}{e.location ? ` · ${e.location}` : ''}</span>
+      </span>
+    </li>
   )
 }
 
-// The one thing that needs you soonest, readable from across the room.
-function NextUp({ event, now }) {
-  const mins = Math.round((event.start - now) / 60000)
-  const when = event.start <= now ? `Now · until ${fmtTime(event.end)}`
-    : mins < 60 ? `In ${mins} min · ${fmtTime(event.start)}`
-    : `${dayKey(event.start) === dayKey(now) ? 'Today' : 'Tomorrow'} · ${fmtTime(event.start)}`
+// The next 3 days as three equal cards: how many events, and the first two.
+function NextDays({ days }) {
   return (
-    <div class={`next-up ${mins <= 15 ? 'soon' : ''}`} style={{ '--cal': event.color }}>
-      <span class="next-label">Next up</span>
-      <span class="next-title">{event.title}</span>
-      <span class="next-when">{when}{event.location ? ` · ${event.location}` : ''}</span>
-    </div>
-  )
-}
-
-// Curated local events and holidays happening today, plus what starts in the next 7 days.
-function LocalToday({ now, items, place }) {
-  if (!items?.length) return null
-  const DAY = 86_400_000
-  const today = isoDay(now)
-  const wd = weekdayOf(now)
-  // Free items are listed in What's on instead.
-  const todays = items.filter((it) => !it.free && activeOn(it, today, wd)).slice(0, 3)
-  const soon = items
-    .filter((it) => !it.free && it.from && it.from > today && it.from <= isoDay(now + 7 * DAY))
-    .sort((a, b) => a.from.localeCompare(b.from))
-    .slice(0, 2)
-  if (!todays.length && !soon.length) return null
-  const dayName = (iso) => fmtDay(Date.parse(`${iso}T12:00:00Z`))
-  return (
-    <div class="agenda-day local">
-      <h3>{place ? `Today in ${place}` : 'Today'}</h3>
-      <ul>
-        {todays.map((it) => (
-          <li class="local-item" key={it.title}>
-            <span class="local-icon"><ItemIcon emoji={it.icon} size={20} /></span>
-            <span class="local-text">
-              <span class="event-title">{it.title}</span>
-              <span class="event-loc muted">{[it.time, it.place, it.note].filter(Boolean).join(' · ')}</span>
+    <div class="next-days">
+      {days.map(({ d, t, events, local }) => {
+        const n = events.length
+        return (
+          <div class="nd-card" key={d}>
+            <span class="nd-head">
+              <span class="nd-day">{d === 1 ? 'Tomorrow' : fmtDay(t)}</span>
+              <span class="nd-count">{n ? `${n} event${n > 1 ? 's' : ''}` : 'Free'}</span>
             </span>
-          </li>
-        ))}
-        {soon.map((it) => (
-          <li class="local-item upcoming" key={it.title}>
-            <span class="local-icon"><ItemIcon emoji={it.icon} size={20} /></span>
-            <span class="local-text">
-              <span class="event-title">{it.title} <span class="muted">· from {dayName(it.from)}</span></span>
-              {it.place && <span class="event-loc muted">{it.place}</span>}
-            </span>
-          </li>
-        ))}
-      </ul>
-      {!todays.length && <p class="muted small">Nothing special today</p>}
+            {n === 0 && !local.length ? <span class="nd-empty">Nothing planned</span> : (
+              <ul class="nd-list">
+                {local.slice(0, 1).map((it) => <li class="nd-item local" key={it.title}><span class="nd-title">{it.title}</span></li>)}
+                {events.slice(0, local.length ? 1 : 2).map((e) => (
+                  <li class="nd-item" key={`${e.calendar}${e.start}${e.title}`} style={{ '--cal': e.color }}>
+                    {!e.allDay && <span class="nd-time">{fmtTime(e.start)}</span>}
+                    <span class="nd-title">{e.title}</span>
+                  </li>
+                ))}
+                {n > (local.length ? 1 : 2) && <li class="nd-more">+{n - (local.length ? 1 : 2)} more</li>}
+              </ul>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
