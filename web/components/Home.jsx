@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'preact/hooks'
 import { api, report, store } from '../lib.js'
-import { Play, Pause, Next, Prev, Close, Bulb, Power, Music } from './icons.jsx'
+import { Play, Pause, Next, Prev, Close, Bulb, Power, Music, Shuffle } from './icons.jsx'
 
 // ---------- data ----------
 
@@ -202,6 +202,10 @@ export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
                   {playing(group) ? <Pause size={32} /> : <Play size={32} />}
                 </button>
                 <button class="icon-btn" aria-label="Next" onClick={() => sonosDo(group.id, 'next')}><Next size={28} /></button>
+                {group.canShuffle && (
+                  <button class={`icon-btn shuffle ${group.shuffle ? 'on' : ''} ${busy(`${group.id}:shuffle`)}`} aria-label="Shuffle" aria-pressed={!!group.shuffle}
+                    onClick={() => sonosDo(group.id, 'shuffle', { on: !group.shuffle }, { shuffle: !group.shuffle })}><Shuffle size={24} /></button>
+                )}
               </div>
               <Slider label="Volume" value={group.volume ?? 0} onCommit={(v) => sonosDo(group.id, 'volume', { volume: v }, { volume: v })} />
               {group.next?.title && (

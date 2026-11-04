@@ -91,6 +91,8 @@ export async function sonosState(env: Env) {
       position: pb.positionMillis ?? null,
       duration: track?.durationMillis ?? null,
       next: next ? { title: next.name ?? '', artist: next.artist?.name ?? '' } : null,
+      shuffle: !!pb.playModes?.shuffle,
+      canShuffle: pb.availablePlaybackActions?.canShuffle !== false, // radio, for one, can't shuffle
     }
   }))
   return { configured: true, connected: true, groups, favorites: h.favorites, playlists: h.playlists }
@@ -103,6 +105,7 @@ export async function sonosAction(env: Env, groupId: string, action: string, bod
     case 'toggle': return post(`/groups/${g}/playback/togglePlayPause`)
     case 'next': return post(`/groups/${g}/playback/skipToNextTrack`)
     case 'previous': return post(`/groups/${g}/playback/skipToPreviousTrack`)
+    case 'shuffle': return post(`/groups/${g}/playback/playMode`, { playModes: { shuffle: !!body.on } })
     case 'volume': return post(`/groups/${g}/groupVolume`, { volume: Math.max(0, Math.min(100, Math.round(body.volume))) })
     case 'favorite': return post(`/groups/${g}/favorites`, { favoriteId: String(body.id), playOnCompletion: true, action: 'REPLACE' })
     case 'playlist': return post(`/groups/${g}/playlists`, { playlistId: String(body.id), playOnCompletion: true, action: 'REPLACE' })

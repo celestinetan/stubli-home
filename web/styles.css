@@ -714,3 +714,9 @@ button.now-icon:active { transform: scale(0.94); }
 .eq.on i:nth-child(7) { animation-duration: 1.05s; animation-delay: -.25s; }
 @keyframes eq-bar { 0% { height: 20%; } 50% { height: 85%; } 100% { height: 45%; } }
 @media (prefers-reduced-motion: reduce) { .eq.on i { animation: none; height: 60%; } }
+
+/* Shuffle sits at the right edge so play stays centred; green when on. */
+.np-controls { position: relative; align-self: stretch; width: 100%; }
+.np-controls .shuffle { position: absolute; right: 0; color: var(--muted); }
+.np-controls .shuffle.on { color: var(--accent); }
+.np-controls .shuffle.on::after { content: ''; position: absolute; bottom: 4px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); }
