@@ -720,3 +720,19 @@ button.now-icon:active { transform: scale(0.94); }
 .np-controls .shuffle { position: absolute; right: 0; color: var(--muted); }
 .np-controls .shuffle.on { color: var(--accent); }
 .np-controls .shuffle.on::after { content: ''; position: absolute; bottom: 4px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); }
+
+/* Music and lights panels slide up from the bottom bar, and back down when closed. */
+.overlay.slide { animation: fade 0.3s ease-out; }
+.overlay.slide > .sheet { animation: slide-up 0.42s cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; }
+.overlay.slide.closing { animation: fade-out 0.26s ease-in forwards; }
+.overlay.slide.closing > .sheet { animation: slide-down 0.26s cubic-bezier(0.4, 0, 1, 1) forwards; }
+@keyframes slide-up { from { transform: translateY(100%); } }
+@keyframes slide-down { to { transform: translateY(100%); } }
+@keyframes fade-out { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .overlay.slide, .overlay.slide > .sheet { animation: none; } }
+
+/* A cover drawn from the title when there's no picture (YouTube mixes, radio). */
+.drawn { display: grid; place-items: center; overflow: hidden; color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(135deg, hsl(var(--h1) 38% 58%), hsl(var(--h2) 42% 42%)); }
+.drawn-letter { font-family: Literata, Georgia, serif; font-weight: 600; line-height: 1; }
+.tile .drawn { grid-row: 1 / 3; width: 52px; height: 52px; border-radius: 8px; }

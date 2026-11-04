@@ -175,7 +175,8 @@ Checked 3 November 2026.
 Your calendar links, keys and settings are stored only in your own Cloudflare account, and links
 and keys are never shown again after saving. With a Gemini key, public headlines (never your own
 data) are sent to Google to be summarised. With Sonos, when a cover can't be loaded from Sonos,
-the artist and album (or song) name is looked up in Apple's free iTunes Search to find it. Sonos's
+the tablet looks the artist and album (or song) name up in Apple's free iTunes Search; if
+that finds nothing, it draws a cover from the title. Sonos's
 recently played list is kept only on the tablet. Nothing else leaves your dashboard.
 
 ## Developing

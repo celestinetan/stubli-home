@@ -91,7 +91,7 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
             <>
               {/* The whole now-playing area opens the music panel. */}
               <button class="np-open" onClick={onMusic} aria-label="Open music">
-                <Art src={group.art} />
+                <Art group={group} />
                 <span class="np-text">
                   <span class="np-title-row"><Eq on={playing(group)} /><Marquee class="np-title" text={group.title || 'Nothing playing'} /></span>
                   <span class="np-room">{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
@@ -151,7 +151,7 @@ const mmss = (ms) => (ms == null ? '' : `${Math.floor(ms / 60000)}:${String(Math
 
 // tablet: music that plays on the tablet itself (YouTube links from Settings → Music), offered as a
 // third tab beside the Sonos favourites and playlists.
-export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
+export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] }) {
   const { sonos, group, groups, pick, sonosDo, busy, recents, remember, refreshSonos } = home
   useEffect(() => { refreshSonos() }, [])
   const [query, setQuery] = useState('')
@@ -177,7 +177,7 @@ export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
   }
 
   return (
-    <div class="overlay" onClick={onClose}>
+    <div class={`overlay slide ${closing ? 'closing' : ''}`} onClick={onClose}>
       <div class="sheet music-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Music">
         <button class="icon-btn close" onClick={onClose} aria-label="Close"><Close /></button>
         {!sonos?.connected || !group ? <Connect svc="sonos" state={sonos} /> : (
@@ -189,7 +189,7 @@ export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
                 </div>
               )}
               {groups.length === 1 && <p class="muted small np-where">Playing in {group.name}</p>}
-              <Cover src={group.art} cls="np-art" size={48} />
+              <Cover src={group.art} query={group.artQuery} title={group.title} cls="np-art" size={48} />
               <Eq on={playing(group)} big />
               <h2 class="np-big-title">{group.title || 'Nothing playing'}</h2>
               <p class="muted np-big-artist">{[group.artist, group.album].filter(Boolean).join(' · ') || group.source}</p>
@@ -229,7 +229,7 @@ export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
                 {items.length === 0 && <p class="muted">{q ? `Nothing matches “${query}”.` : tab === 'tablet' ? 'Nothing yet. Add YouTube or YouTube Music links in Settings → Music.' : tab === 'recent' ? 'Nothing yet. What you play from here, and favourites you play in the Sonos app, show up here.' : 'No favourites yet. Add them in the Sonos app.'}</p>}
                 {items.map((x) => (
                   <button class={`tile ${tab === 'tablet' ? '' : busy(`${group.id}:${x.kind}`)}`} key={`${x.kind}${x.id}`} onClick={() => play(x)}>
-                    <Cover src={x.image} cls="tile-art" ph="tile-ph" />
+                    <Cover src={x.image} title={x.name} cls="tile-art" ph="tile-ph" />
                     <span class="tile-name">{x.name}</span>
                     {(x.description || x.tracks) && <span class="tile-sub">{x.description || `${x.tracks} tracks`}</span>}
                   </button>
@@ -245,10 +245,10 @@ export function MusicSheet({ home, onClose, tablet, tabletLinks = [] }) {
 
 // ---------- lights ----------
 
-export function LightsSheet({ home, onClose }) {
+export function LightsSheet({ home, onClose, closing }) {
   const { hue, hueDo, busy } = home
   return (
-    <div class="overlay" onClick={onClose}>
+    <div class={`overlay slide ${closing ? 'closing' : ''}`} onClick={onClose}>
       <div class="sheet home-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Lights">
         <button class="icon-btn close" onClick={onClose} aria-label="Close"><Close /></button>
         <h2>Lights</h2>
@@ -305,16 +305,63 @@ function Connect({ svc, state }) {
   return <a class="btn" href={`/auth/${svc}/start`}>Connect {name}</a>
 }
 
-// Covers come as https links or through this dashboard's own /api/art (see worker/sonos.ts);
-// anything else, or a cover that doesn't load, shows a placeholder instead of a broken image.
+// Covers come as https links or through this dashboard's own /api/art (see worker/sonos.ts).
+// Without one, the tablet looks the song or album up in Apple's free iTunes Search; failing that
+// (YouTube mixes, radio), it draws a cover from the title: soft colours and its first letter.
 const safeArt = (src) => (src && (src.startsWith('https://') || src.startsWith('/api/art')) ? src : null)
 
-function Cover({ src, cls, ph = 'placeholder', size = 22 }) {
-  const [failed, setFailed] = useState(null)
-  const url = safeArt(src)
-  return url && failed !== url ? <img class={cls} src={url} alt="" onError={() => setFailed(url)} /> : <span class={`${cls} ${ph}`}><Music size={size} /></span>
+const fold = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+const tidy = (s) => (s ?? '').replace(/\s*[([][^)\]]*[)\]]/g, '').split(/\s+[|·•–-]\s+/)[0].trim()
+const looked = store.get('coverLookups', {}) // query → cover link ('' = none found), kept on this tablet
+function useLookup(q) {
+  const key = q ? `${fold(q.artist)}|${fold(q.album || q.title)}` : null
+  const [url, setUrl] = useState(key ? looked[key] : undefined)
+  useEffect(() => {
+    if (!key) return setUrl(undefined)
+    if (key in looked) return setUrl(looked[key])
+    setUrl(undefined)
+    const entity = q.album ? 'album' : 'song'
+    const term = [tidy(q.artist), tidy(q.album || q.title)].filter(Boolean).join(' ')
+    if (!term) return
+    let live = true
+    fetch(`https://itunes.apple.com/search?${new URLSearchParams({ term, media: 'music', entity, limit: '3' })}`)
+      .then((r) => r.json())
+      .then((d) => {
+        // Only a match by the same artist counts, so a wrong cover never shows.
+        const a = fold(tidy(q.artist))
+        const hit = (d.results ?? []).find((x) => !a || fold(x.artistName).includes(a) || a.includes(fold(x.artistName)))
+        looked[key] = hit?.artworkUrl100?.replace(/\/\d+x\d+bb\./, '/600x600bb.') ?? ''
+        const keys = Object.keys(looked)
+        if (keys.length > 200) delete looked[keys[0]]
+        store.set('coverLookups', looked)
+        if (live) setUrl(looked[key])
+      })
+      .catch(() => {})
+    return () => { live = false }
+  }, [key])
+  return url
 }
-const Art = ({ src }) => <Cover src={src} cls="art" />
+
+function Drawn({ title, cls, size }) {
+  const t = (title ?? '').trim()
+  let h = 0
+  for (const ch of t) h = (h * 31 + ch.charCodeAt(0)) % 360
+  const letter = [...tidy(t).replace(/^(the|a|an)\s+/i, '')].find((c) => /\p{L}|\p{N}/u.test(c))
+  return (
+    <span class={`${cls} drawn`} style={{ '--h1': h, '--h2': (h + 50) % 360 }} aria-hidden="true">
+      {letter ? <span class="drawn-letter" style={{ fontSize: `${size * 1.6}px` }}>{letter.toUpperCase()}</span> : <Music size={size} />}
+    </span>
+  )
+}
+
+function Cover({ src, query, title, cls, ph = 'placeholder', size = 22 }) {
+  const [failed, setFailed] = useState(null)
+  const found = useLookup(safeArt(src) && failed !== src ? null : query)
+  const url = safeArt(src) && failed !== src ? src : found
+  if (url && failed !== url) return <img class={cls} src={url} alt="" onError={() => setFailed(url)} />
+  return title ? <Drawn title={title} cls={cls} size={size} /> : <span class={`${cls} ${ph}`}><Music size={size} /></span>
+}
+const Art = ({ group }) => <Cover src={group.art} query={group.artQuery} title={group.title} cls="art" />
 
 // A visual equaliser: bars that move while music plays. Sonos doesn't share the sound itself,
 // so the bars are a gentle animation, not a reading of the music; they rest when paused.

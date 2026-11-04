@@ -3,9 +3,10 @@
 ## 1.1 – 4 November 2026
 
 - In Switzerland the weather comes from MeteoSwiss's own forecast (as in its app), not just its model.
-- Sonos: album covers show (looked up when Sonos only has them on the speaker), a visual equaliser while music plays, a shuffle button, favourites that refresh when the music panel opens, and Recently played instead of the playlists tab.
+- Sonos: album covers show (looked up by the tablet when Sonos only has them on the speaker, as with YouTube Music; drawn from the title when nothing's found), a visual equaliser while music plays, a shuffle button, favourites that refresh when the music panel opens, and Recently played instead of the playlists tab.
 - Hue colour moods are your Hue scenes under their own names: Galaxy, Fairfax, Soho, Dreamy Dusk and Savannah Sunset, recalled as Hue saved them, each button in the scene's own colour.
 - Free museum days and venues more than 100 km from your city are left out.
+- The music and lights panels slide up from the bottom and back down.
 - Your day shows the next 3 days at a glance, instead of tomorrow in one line.
 - Free museum days across Switzerland built in (Zürich, Winterthur, Basel, Luzern, Geneva, Lausanne, Neuchâtel, Lugano), including "first Sunday of the month" rules. Turn them off in Settings → What's on.
 - Zürich venues as optional event sources, each with its own switch: Zentralwäscherei (concerts and performances), Kauz, Frieda's Büxe, Hive and Umbo.

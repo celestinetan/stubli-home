@@ -29,6 +29,14 @@ function App() {
   const [category, setCategory] = useState(null)
   const [toast, setToast] = useState(null)
   const [sheet, setSheet] = useState(null) // 'music' | 'lights' | null
+  // The music and lights panels slide down before they go (see .overlay.slide in styles.css).
+  const [closing, setClosing] = useState(false)
+  const closeSheet = () => {
+    if (closing) return
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return setSheet(null)
+    setClosing(true)
+    setTimeout(() => { setSheet(null); setClosing(false) }, 260)
+  }
   const [settings, setSettings] = useState(false)
   const [online, setOnline] = useState(true)
   const [textSize, setTextSize] = useState(() => store.get('textSize', 'm'))
@@ -132,8 +140,8 @@ function App() {
       {category && <CategoryPanel card={category} now={now} onOpen={setStory} onClose={() => setCategory(null)} />}
       {story && <StoryPanel story={story} now={now} onClose={() => setStory(null)} />}
       {toast && <div class="toast" role="status">{toast}</div>}
-      {sheet === 'music' && <MusicSheet home={home} onClose={() => setSheet(null)} tablet={music} tabletLinks={mods.tablet !== false ? dash?.settings?.tabletMusic ?? [] : []} />}
-      {sheet === 'lights' && <LightsSheet home={home} onClose={() => setSheet(null)} />}
+      {sheet === 'music' && <MusicSheet home={home} closing={closing} onClose={closeSheet} tablet={music} tabletLinks={mods.tablet !== false ? dash?.settings?.tabletMusic ?? [] : []} />}
+      {sheet === 'lights' && <LightsSheet home={home} closing={closing} onClose={closeSheet} />}
       {setup && <Setup onSaved={load} onDone={() => { setSetup(false); load() }} />}
       {settings && <Settings onClose={() => setSettings(false)} onSaved={load} textSize={textSize} setTextSize={setTextSize} />}
       {sleeping && (
