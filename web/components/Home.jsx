@@ -92,10 +92,9 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
             <>
               {/* The whole now-playing area opens the music panel. */}
               <button class="np-open" onClick={onMusic} aria-label="Open music">
-                <Disc on={playing(group)} size={40} />
                 <span class="np-text">
-                  <Marquee class="np-title" text={group.title || 'Nothing playing'} />
-                  <span class="np-room">{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
+                  <Marquee class="np-title" text={group.title || 'Nothing playing'} run={playing(group)} />
+                  <span class="np-room">{playing(group) ? '' : 'Paused · '}{group.artist ? `${group.artist} · ` : ''}{group.name}</span>
                 </span>
               </button>
               <button class={`icon-btn big ${busy(`${group.id}:toggle`)}`} aria-label={playing(group) ? 'Pause' : 'Play'}
@@ -194,7 +193,6 @@ export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] })
                   {groups.map((g) => <button key={g.id} aria-pressed={g.id === group.id} onClick={() => pick(g.id)}>{g.name}</button>)}
                 </div>
               ) : <p class="np-where">Playing in {group.name}</p>}
-              <Disc on={playing(group)} size={132} />
               <div class="np-meta">
                 <h2 class="np-big-title">{group.title || 'Nothing playing'}</h2>
                 {group.artist && <p class="np-big-artist">{[group.artist, group.album].filter(Boolean).join(' · ')}</p>}
@@ -244,7 +242,7 @@ export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] })
                         <span class="pick-name">{x.name}</span>
                         {(x.description || x.tracks) && <span class="pick-sub">{x.description || `${x.tracks} tracks`}</span>}
                       </span>
-                      {now ? <span class="pick-now"><Disc on={playing(group)} size={18} /> Playing</span> : <span class="pick-play" aria-hidden="true"><Play size={18} /></span>}
+                      {now ? <span class="pick-now">{playing(group) ? 'Playing' : 'Paused'}</span> : <span class="pick-play" aria-hidden="true"><Play size={18} /></span>}
                     </button>
                   )
                 })}
@@ -319,12 +317,6 @@ function Connect({ svc, state }) {
   return <a class="btn" href={`/auth/${svc}/start`}>Connect {name}</a>
 }
 
-// A small CD that turns slowly while music plays and rests when paused: a quiet sign that
-// something's on. It stays still if the tablet asks for reduced motion.
-function Disc({ on, size }) {
-  return <span class={`disc ${on ? 'on' : ''}`} style={{ '--size': `${size}px` }} aria-hidden="true" />
-}
-
 // Track time, counting on between Sonos updates while playing.
 function useElapsed(group) {
   const [now, setNow] = useState(Date.now())
@@ -357,22 +349,20 @@ function Slider({ value, onCommit, label, min = 0 }) {
 }
 
 // Text that slowly scrolls back and forth only when it doesn't fit (e.g. long song titles).
-function Marquee({ text, class: cls }) {
-  const box = useRef(null)
+// The song title in the bottom bar. While music plays it scrolls slowly in a loop, which is how
+// the bar shows that something's on; paused, it stands still (cut short with "…" if too long).
+// With Reduce Motion on, it never moves.
+function Marquee({ text, class: cls, run }) {
   const inner = useRef(null)
-  const [shift, setShift] = useState(0)
-  useEffect(() => {
-    const measure = () => {
-      const over = (inner.current?.scrollWidth ?? 0) - (box.current?.clientWidth ?? 0)
-      setShift(over > 4 ? over : 0)
-    }
-    measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [text])
+  const [w, setW] = useState(0)
+  useEffect(() => { setW(inner.current?.offsetWidth ?? 0) }, [text, run])
   return (
-    <span class={`${cls} marquee`} ref={box} title={text}>
-      <span ref={inner} class={shift ? 'scrolling' : ''} style={shift ? { '--shift': `-${shift}px`, '--dur': `${Math.max(6, shift / 12)}s` } : null}>{text}</span>
+    <span class={`${cls} marquee ${run ? 'running' : ''}`} title={text}>
+      {run ? (
+        <span class="marquee-track" style={{ '--dur': `${Math.max(8, (w + 48) / 32)}s` }}>
+          <span ref={inner}>{text}</span><span aria-hidden="true">{text}</span>
+        </span>
+      ) : <span ref={inner} class="marquee-still">{text}</span>}
     </span>
   )
 }
