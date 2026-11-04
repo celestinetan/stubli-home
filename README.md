@@ -148,8 +148,9 @@ Still stuck? [Open an issue](../../issues) or write to hello@celestinetan.com.
 
 Checked 3 November 2026.
 
-- Weather: [Open-Meteo](https://open-meteo.com) (free, no key). In Switzerland it uses
-  MeteoSwiss's ICON-CH2 model, and warnings come from the feed behind the MeteoSwiss app (unofficial).
+- Weather: in Switzerland, MeteoSwiss's own local forecast and warnings, from the feed behind the
+  MeteoSwiss app (unofficial; by postcode, so humidity and UV aren't shown). Elsewhere
+  [Open-Meteo](https://open-meteo.com) (free, no key).
 - Holidays: [OpenHolidays API](https://www.openholidaysapi.org) (mostly European countries).
 - News: the public RSS feeds of the outlets listed in Settings. Summaries by
   [Google Gemini](https://ai.google.dev) on its free tier, if you add a key.
@@ -164,7 +165,7 @@ Checked 3 November 2026.
 ## Known limits
 
 - English only, with British date formats.
-- The unofficial feeds (MeteoSwiss warnings, Kultur Züri, the venue programmes) can stop working if those sites change.
+- The unofficial feeds (MeteoSwiss, Kultur Züri, the venue programmes) can stop working if those sites change.
 - Free plans have limits: news is collected in two halves a few minutes apart, and AI summaries
   run at most every 30 minutes. See [SETUP.md](SETUP.md).
 - A calendar can take a while to show changes, depending on how often your provider updates its shared link.

@@ -29,7 +29,9 @@ export async function fetchLocal() {
   // Your own items first; a built-in free day for the same place and weekdays is left out.
   const own = config.local.events as LocalItem[]
   const key = (it: LocalItem) => `${it.place}|${it.weekdays?.join()}`
-  const builtIn = (config.events.freeDays ? FREE_DAYS[config.location.country] ?? [] : []).filter((it) => !own.some((o) => key(o) === key(it)))
+  const builtIn = (config.events.freeDays ? nearbyFreeDays() : [])
+    .filter((it) => !own.some((o) => key(o) === key(it)))
+    .map(({ lat, lon, ...it }) => it)
   const curated = [...own, ...builtIn]
   if (!config.location.country) return { items: curated }
   const [pub, school] = await Promise.all([
@@ -51,4 +53,18 @@ export async function fetchLocal() {
     return [{ title: `School holidays: ${name(h)}`, note: `Until ${h.endDate}`, icon: '🏫', from: h.startDate, to: h.endDate }]
   })
   return { items: [...holidays, ...schools, ...curated] }
+}
+
+// Your country's built-in free museum days within config.events.radiusKm of your city.
+export function nearbyFreeDays() {
+  const { latitude, longitude } = config.location
+  return (FREE_DAYS[config.location.country] ?? []).filter((it) =>
+    latitude == null || longitude == null || distanceKm(latitude, longitude, it.lat, it.lon) <= config.events.radiusKm)
+}
+
+// Straight-line distance between two places (haversine), in km.
+export function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const r = (d: number) => (d * Math.PI) / 180
+  const a = Math.sin(r(lat2 - lat1) / 2) ** 2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lon2 - lon1) / 2) ** 2
+  return 2 * 6371 * Math.asin(Math.sqrt(a))
 }

@@ -128,7 +128,7 @@ function General({ e, save, textSize, setTextSize }) {
         ? <p>{e.location.name}{e.location.country ? `, ${e.location.country}` : ''} <span class="muted small">· {e.location.timezone}</span></p>
         : <p class="muted">No city yet. Search for yours below.</p>}
       <CitySearch onPick={(loc) => save({ location: loc }, undefined, `Location set to ${loc.name}`)} />
-      <p class="muted small">Weather, time zone, public holidays and the local news card follow this place.{e.location.country === 'CH' ? ' In Switzerland, MeteoSwiss warnings are added too.' : ''}</p>
+      <p class="muted small">Weather, time zone, public holidays and the local news card follow this place.{e.location.country === 'CH' ? ' In Switzerland the forecast and warnings come from MeteoSwiss.' : ''}</p>
 
       <h3>Daytime look</h3>
       <div class="segmented">
@@ -279,7 +279,7 @@ function EventSettings({ e, save }) {
         {e.freeDaysCount > 0 && (
           <li>
             <button class="toggle-row" aria-pressed={!!e.freeDays} onClick={() => save({ freeDays: !e.freeDays })}>
-              <span>Free museum days <span class="muted small">· {e.freeDaysCount} across {e.location?.country ? new Intl.DisplayNames(['en'], { type: 'region' }).of(e.location.country) : 'your country'}</span></span><span class="switch" aria-hidden="true"><span /></span>
+              <span>Free museum days <span class="muted small">· {e.freeDaysCount} within {e.radiusKm ?? 100} km</span></span><span class="switch" aria-hidden="true"><span /></span>
             </button>
           </li>
         )}

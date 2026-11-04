@@ -116,6 +116,7 @@ export default {
     // Kultur Züri (kulturzueri.ch): concerts, art tours and exhibitions around Zürich. Off by default.
     kulturZueri: false,
     venues: [] as string[], // Zürich venues to include, by id (see worker/venues.ts), e.g. ['kauz', 'umbo']
+    radiusKm: 100, // free museum days and venues further than this from your city are left out
     freeDays: true, // regular free museum days for your country, where Stubli Home knows them (worker/free-days.ts)
     kinds: { music: true, art: true, exhibitions: true },
   },

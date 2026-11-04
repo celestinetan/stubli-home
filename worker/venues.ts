@@ -1,5 +1,6 @@
 import config from './config'
 import type { EventItem } from './events'
+import { distanceKm } from './local'
 
 // Optional venues for "What's on": each reads the venue's own public programme, one light request
 // an hour, only where its robots.txt allows. None of these is an official feed, so a redesign of a
@@ -8,6 +9,7 @@ import type { EventItem } from './events'
 
 const UA = { 'User-Agent': 'Mozilla/5.0 (wall dashboard)' }
 const CITY = 'Zürich'
+const AT = { lat: 47.3769, lon: 8.5417 } // all these venues are in Zürich
 
 export const decode = (s: string) => s
   .replace(/<\/?br\s*\/?>/gi, ' ')
@@ -30,6 +32,12 @@ async function get(url: string) {
 
 const item = (venue: string, e: Omit<EventItem, 'source' | 'venue' | 'city' | 'nearby'>): EventItem =>
   ({ source: venue, venue, city: CITY, nearby: nearby(), ...e })
+
+// Venues further than config.events.radiusKm from your city are skipped (see events.ts).
+export const inReach = () => {
+  const { latitude, longitude } = config.location
+  return latitude == null || longitude == null || distanceKm(latitude, longitude, AT.lat, AT.lon) <= config.events.radiusKm
+}
 
 export const VENUES: { id: string; name: string; note: string; read: () => Promise<EventItem[]> }[] = [
   { id: 'zentralwaescherei', name: 'Zentralwäscherei', note: 'concerts and performances', read: zentralwaescherei },

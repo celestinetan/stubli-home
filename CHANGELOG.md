@@ -2,6 +2,8 @@
 
 ## 1.1 – 4 November 2026
 
+- In Switzerland the weather comes from MeteoSwiss's own forecast (as in its app), not just its model.
+- Free museum days and venues more than 100 km from your city are left out.
 - Your day shows the next 3 days at a glance, instead of tomorrow in one line.
 - Free museum days across Switzerland built in (Zürich, Winterthur, Basel, Luzern, Geneva, Lausanne, Neuchâtel, Lugano), including "first Sunday of the month" rules. Turn them off in Settings → What's on.
 - Zürich venues as optional event sources, each with its own switch: Zentralwäscherei (concerts and performances), Kauz, Frieda's Büxe, Hive and Umbo.

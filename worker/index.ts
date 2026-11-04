@@ -4,11 +4,10 @@ import config from './config'
 import { type Env, readSlot, refreshSlot, logError, recentErrors } from './store'
 import { fetchWeather } from './weather'
 import { fetchCalendar, feedUrl } from './calendar'
-import { fetchLocal } from './local'
+import { fetchLocal, nearbyFreeDays } from './local'
 import { fetchEvents } from './events'
 import { fetchNews, collectNewsBatch, parseFeed } from './news'
-import { FREE_DAYS } from './free-days'
-import { VENUES } from './venues'
+import { VENUES, inReach } from './venues'
 import { startUrl, finish, type Provider } from './oauth'
 import { sonosProvider, sonosState, sonosAction } from './sonos'
 import { hueProvider, hueState, hueAction, hueRegisterApp } from './hue'
@@ -141,8 +140,8 @@ app.get('/api/settings', async (c) => {
     effective: {
       location: { ...config.location, timezone: config.timezone, subdivision: config.local.subdivision },
       modules: config.modules, columns: config.columns, theme: config.display.theme, paper: config.display.paper,
-      feeds: config.news.feeds, categories: config.news.categories, eventKinds: config.events.kinds, kulturZueri: config.events.kulturZueri, venues: config.events.venues, venueList: VENUES.map(({ id, name, note }) => ({ id, name, note })), tabletMusic: config.tabletMusic,
-      freeDays: config.events.freeDays, freeDaysCount: FREE_DAYS[config.location.country]?.length ?? 0,
+      feeds: config.news.feeds, categories: config.news.categories, eventKinds: config.events.kinds, kulturZueri: config.events.kulturZueri, venues: config.events.venues, venueList: inReach() ? VENUES.map(({ id, name, note }) => ({ id, name, note })) : [], tabletMusic: config.tabletMusic,
+      freeDays: config.events.freeDays, freeDaysCount: nearbyFreeDays().length, radiusKm: config.events.radiusKm,
       hiddenCalendars: config.calendar.hidden, localEvents: config.local.events,
     },
     // Hidden cards included; the Local card carries your country's name.
