@@ -44,6 +44,7 @@ export function useHome(sheetOpen) {
     return run(`${gid}:${action}`, `/api/sonos/${encodeURIComponent(gid)}/${action}`, body, 'Sonos', reloadSonos)
   }
   const hueDo = (action, id, body, optimistic, homePatch) => {
+    if (action === 'preset') window.dispatchEvent(new CustomEvent('toast', { detail: `${hue?.presets?.find((p) => p.id === id)?.name ?? 'Mood'} on` }))
     if (action !== 'preset') homePatch = { ...homePatch, activeMood: null }
     if (optimistic || homePatch) setHue((h) => ({ ...h, ...homePatch, rooms: optimistic ? h.rooms.map(optimistic) : h.rooms }))
     return run(`${action}:${id}`, `/api/hue/${action}/${encodeURIComponent(id)}`, body, 'Hue', reloadHue)
@@ -111,30 +112,34 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
           : !hue.connected ? <a class="btn" href="/auth/hue/start"><Bulb size={20} /> Connect Hue</a>
           : (
             <>
-              {/* Room scenes from config if set; otherwise the whole-home presets. */}
-              {!quick.length && (hue.presets ?? []).filter((p) => BAR_MOODS.includes(p.id)).map((p) => (
-                <button class={`chip ${hue.activeMood === p.id ? 'on' : ''} ${busy(`preset:${p.id}`)}`} aria-pressed={hue.activeMood === p.id} key={p.id} onClick={() => hueDo('preset', p.id, null, (r) => ({ ...r, on: true }), { activeMood: p.id, homeOn: true })}>
-                  <span aria-hidden="true">{p.icon}</span> {p.name}
-                </button>
-              ))}
+              {/* Room scenes from config, if any; moods live in the Lights panel. */}
               {quick.map((q) => (
                 <button class={`chip ${q.scene.active ? 'on' : ''} ${busy(`scene:${q.scene.id}`)}`} key={q.scene.id} onClick={() => hueDo('scene', q.scene.id, null)} aria-label={`${q.scene.name} in ${q.room.name}`}>
                   {q.room.name} {q.scene.name}
                 </button>
               ))}
-              {hue.allOffId && (
-                <button class={`chip ${busy(`power:${hue.allOffId}`)}`} onClick={() => hueDo('power', hue.allOffId, { on: false }, (r) => ({ ...r, on: false }))}><Power size={18} /> Off</button>
-              )}
+
             </>
           )}
       </div>
 
-      {hue?.connected && <button class="btn home-btn" onClick={onLights}><Bulb size={20} /> Lights</button>}
+      {hue?.connected && (
+        <div class="lights-ctl">
+          {/* One lights control: the mood that's on (or on/off), and a power button beside it. */}
+          <button class="btn home-btn" onClick={onLights}>
+            <Bulb size={20} />
+            <span class="lights-label">{hue.homeOn ? (hue.presets?.find((p) => p.id === hue.activeMood)?.name ?? 'Lights on') : 'Lights off'}</span>
+          </button>
+          {hue.allOffId && (
+            <button class={`icon-btn power ${hue.homeOn ? 'on' : ''} ${busy(`power:${hue.allOffId}`)}`} aria-label={hue.homeOn ? 'Turn all lights off' : 'Turn all lights on'} aria-pressed={!!hue.homeOn}
+              onClick={() => hueDo('power', hue.allOffId, { on: !hue.homeOn }, (r) => ({ ...r, on: !hue.homeOn }), { homeOn: !hue.homeOn })}><Power size={20} /></button>
+          )}
+        </div>
+      )}
     </footer>
   )
 }
 
-const BAR_MOODS = ['relaxed', 'cosy', 'sleepy'] // whole-home moods on the bottom bar
 
 function resolveScenes(hue, barScenes) {
   if (!hue?.rooms) return []

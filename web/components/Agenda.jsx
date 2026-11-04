@@ -1,10 +1,11 @@
 import { fmtTime, fmtDayLong, fmtDay, dayKey, isoDay, weekdayOf, activeOn } from '../lib.js'
 import { Updated } from './Updated.jsx'
+import { ItemIcon } from './icons.jsx'
 
 const DAY = 86_400_000
 
 // Your day: next up, today's events, the next 3 days at a glance, and local holidays.
-export function Agenda({ now, calendar, local, place = '', extra }) {
+export function Agenda({ now, calendar, local, weather, place = '', extra }) {
   const c = calendar?.data
   const today = isoDay(now)
 
@@ -33,6 +34,7 @@ export function Agenda({ now, calendar, local, place = '', extra }) {
     <section class="panel agenda">
       <h2>Your day <Updated slot={calendar} /></h2>
       <div class="scroll">
+        <TodayLine now={now} calendar={c} local={local?.data?.items} weather={weather?.data} />
         {yourDay}
         <LocalToday now={now} items={local?.data?.items} place={place} />
       </div>
@@ -64,6 +66,24 @@ function Day({ label, events, now, empty, showDay }) {
       )}
     </div>
   )
+}
+
+// Today in one sentence, for a glance from across the room: how much is left on the calendar,
+// rain to come, and a free museum day if there is one.
+function TodayLine({ now, calendar, local, weather }) {
+  const today = isoDay(now)
+  const parts = []
+  if (calendar?.configured) {
+    const left = calendar.events.filter((e) => e.end > now && isoDay(e.start) === today && !e.allDay).length
+    parts.push(left ? `${left} more event${left > 1 ? 's' : ''} today` : 'Nothing else on the calendar today')
+  }
+  if (weather?.rain) parts.push(weather.rain.text.replace(/^Rain/, 'rain'))
+  else if (weather?.daily?.[0]?.pop >= 50) parts.push('showers likely later')
+  const free = (local ?? []).find((it) => it.free && activeOn(it, today, weekdayOf(now)) && !(it.time && it.time.slice(6) < fmtTime(now)))
+  if (free) parts.push(`free: ${free.place ?? free.title}`)
+  if (!parts.length) return null
+  const text = parts.join(' · ')
+  return <p class="today-line">{text.charAt(0).toUpperCase() + text.slice(1)}</p>
 }
 
 // The next 3 days, one compact row each: up to 3 events, then how many more.
@@ -125,7 +145,7 @@ function LocalToday({ now, items, place }) {
       <ul>
         {todays.map((it) => (
           <li class="local-item" key={it.title}>
-            <span class="local-icon" aria-hidden="true">{it.icon}</span>
+            <span class="local-icon"><ItemIcon emoji={it.icon} size={20} /></span>
             <span class="local-text">
               <span class="event-title">{it.title}</span>
               <span class="event-loc muted">{[it.time, it.place, it.note].filter(Boolean).join(' · ')}</span>
@@ -134,7 +154,7 @@ function LocalToday({ now, items, place }) {
         ))}
         {soon.map((it) => (
           <li class="local-item upcoming" key={it.title}>
-            <span class="local-icon" aria-hidden="true">{it.icon}</span>
+            <span class="local-icon"><ItemIcon emoji={it.icon} size={20} /></span>
             <span class="local-text">
               <span class="event-title">{it.title} <span class="muted">· from {dayName(it.from)}</span></span>
               {it.place && <span class="event-loc muted">{it.place}</span>}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { report } from '../lib.js'
+import { buildCards } from './News.jsx'
 
 // A slow headline ticker above the bottom bar: weather warnings and rain alerts first, then the
 // most important stories. It's the one thing on screen that keeps moving; touching it pauses it
@@ -8,7 +9,7 @@ import { report } from '../lib.js'
 
 const PX_PER_SECOND = 90
 
-export function Ticker({ news, weather, onOpen }) {
+export function Ticker({ news, categories, weather, onOpen }) {
   const [paused, setPaused] = useState(false)
   const timer = useRef(0)
   const track = useRef(null)
@@ -20,12 +21,15 @@ export function Ticker({ news, weather, onOpen }) {
       ...(w?.warnings ?? []).map((x) => ({ key: `w${x.type}`, kind: 'warn', text: `${x.type} warning · level ${x.level}` })),
       ...(w?.rain ? [{ key: 'rain', kind: 'rain', text: w.rain.text }] : []),
     ]
-    const stories = (news?.data?.stories ?? [])
-      .filter((s) => !s.kind || s.kind === 'news' || s.kind === 'analysis')
-      .slice(0, 12)
+    // Headlines already on the news cards are skipped, so the ticker adds rather than repeats.
+    const onCards = new Set(buildCards(news?.data?.stories, categories).flatMap((c) => c.stories.map((x) => x.id)))
+    const hard = (news?.data?.stories ?? []).filter((s) => !s.kind || s.kind === 'news' || s.kind === 'analysis')
+    const fresh = hard.filter((s) => !onCards.has(s.id))
+    // With only a few stories about, the ticker shows them all rather than run nearly empty.
+    const stories = (fresh.length >= 4 ? fresh : hard).slice(0, 12)
       .map((s) => ({ key: s.id, kind: 'story', text: s.headline, story: s }))
     return [...alerts, ...stories]
-  }, [news, weather])
+  }, [news, weather, categories])
 
   useEffect(() => {
     let x = 0, last = 0, raf = 0, moved = 0
@@ -51,6 +55,7 @@ export function Ticker({ news, weather, onOpen }) {
   }, [])
 
   if (!items.length) return null
+  const list = items.filter((it) => it.story).map((it) => it.story)
   const pause = () => { setPaused(true); clearTimeout(timer.current); timer.current = setTimeout(() => setPaused(false), 6000) }
 
   // The list is drawn twice so the loop joins up seamlessly.
@@ -59,7 +64,7 @@ export function Ticker({ news, weather, onOpen }) {
       {it.kind === 'warn' && <span aria-hidden="true">⚠ </span>}
       {it.kind === 'rain' && <span aria-hidden="true">☂ </span>}
       {it.story
-        ? <button tabIndex={copy ? -1 : 0} onClick={() => onOpen(it.story)}>{it.text}</button>
+        ? <button tabIndex={copy ? -1 : 0} onClick={() => onOpen(it.story, list)}>{it.text}</button>
         : it.text}
     </span>
   ))

@@ -1,33 +1,16 @@
 import { useState } from 'preact/hooks'
 import { isoDay, weekdayOf, store, fmtTime, activeOn } from '../lib.js'
 import { Updated } from './Updated.jsx'
+import { ItemIcon } from './icons.jsx'
 
 const DAY = 86_400_000
 const WHEN = [
   { id: 'today', label: 'Today' },
   { id: 'weekend', label: 'Weekend' },
-  { id: 'week', label: '7 days' },
-]
-const WHERE = [
-  { id: 'all', label: 'All' },
-  { id: 'zurich', label: 'Zürich' },
-  { id: 'nearby', label: 'Elsewhere' },
+  { id: 'week', label: 'Week' },
 ]
 
-function kindIcon(kind) {
-  const k = kind.toLowerCase()
-  if (k === 'exhibition') return '🏛️'
-  if (k === 'art') return '🎨'
-  if (/konzert|concert|musik|music|jazz|klassik/.test(k)) return '🎵'
-  if (/ausstell|exhibit|museum|kunst|art/.test(k)) return '🖼️'
-  if (/theater|theatre|bühne|oper|tanz|dance|comedy/.test(k)) return '🎭'
-  if (/film|kino|cinema/.test(k)) return '🎬'
-  if (/markt|market|messe/.test(k)) return '🛍️'
-  if (/kinder|famil|kids/.test(k)) return '🧸'
-  if (/sport/.test(k)) return '⚽'
-  if (/party|fest/.test(k)) return '🎉'
-  return '✨'
-}
+
 
 function dayLabel(iso, today, tomorrow) {
   if (iso === today) return 'Today'
@@ -47,7 +30,8 @@ function range(when, now) {
 
 export function WhatsOn({ now, events, local, place = '', onOpen, eventSources = false }) {
   const [when, setWhen] = useState(() => store.get('wo-when', 'today'))
-  const [where, setWhere] = useState(() => store.get('wo-where', 'all'))
+  // One row of filters: when, plus a switch to show only your own city ('zurich' = home city).
+  const [where, setWhere] = useState(() => (store.get('wo-where', 'all') === 'zurich' ? 'zurich' : 'all'))
   const pickWhen = (v) => { setWhen(v); store.set('wo-when', v) }
   const pickWhere = (v) => { setWhere(v); store.set('wo-where', v) }
 
@@ -87,8 +71,12 @@ export function WhatsOn({ now, events, local, place = '', onOpen, eventSources =
     <section class="panel whatson">
       <h2>What's on <Updated slot={events} /></h2>
       <div class="filters">
-        <div class="segmented small">{WHEN.map((w) => <button key={w.id} aria-pressed={when === w.id} onClick={() => pickWhen(w.id)}>{w.label}</button>)}</div>
-        {eventSources && <div class="segmented small">{WHERE.map((w) => <button key={w.id} aria-pressed={where === w.id} onClick={() => pickWhere(w.id)}>{w.id === 'zurich' ? place || 'Here' : w.label}</button>)}</div>}
+        <div class="segmented">{WHEN.map((w) => <button key={w.id} aria-pressed={when === w.id} onClick={() => pickWhen(w.id)}>{w.label}</button>)}</div>
+        {eventSources && place && (
+          <button class={`chip only-here ${where === 'zurich' ? 'on' : ''}`} aria-pressed={where === 'zurich'} onClick={() => pickWhere(where === 'zurich' ? 'all' : 'zurich')}>
+            Only {place}
+          </button>
+        )}
       </div>
       <div class="scroll">
         {!data && <p class="muted">{events?.error ? 'Events didn\'t load this time. Trying again shortly.' : 'Loading events…'}</p>}
@@ -103,7 +91,7 @@ export function WhatsOn({ now, events, local, place = '', onOpen, eventSources =
                   <button class={`event-item${e.free ? ' free' : ''}`} onClick={() => onOpen(asStory(e, dayLabel(e.date, today, tomorrow)))}>
                     <span class="event-when">{e.time || 'All day'}</span>
                     <span class="event-body">
-                      <span class="event-name"><span aria-hidden="true">{e.icon ?? kindIcon(e.kind)}</span> {e.title}{e.free && <span class="free-badge" title="Free entry">🆓</span>}</span>
+                      <span class="event-name"><ItemIcon kind={e.kind} emoji={e.icon} /> {e.title}</span>
                       <span class="event-where muted">{[e.venue, e.city !== place && e.city].filter(Boolean).join(' · ')}{e.soldOut ? ' · Sold out' : ''}</span>
                     </span>
                   </button>
@@ -121,7 +109,7 @@ export function WhatsOn({ now, events, local, place = '', onOpen, eventSources =
                   <button class={`event-item${e.free ? ' free' : ''}`} onClick={() => onOpen(asStory(e, `Until ${untilLabel(e.date)}`))}>
                     <span class="event-when">{untilLabel(e.date)}</span>
                     <span class="event-body">
-                      <span class="event-name"><span aria-hidden="true">{kindIcon(e.kind)}</span> {e.title}{e.free && <span class="free-badge" title="Free entry">🆓</span>}</span>
+                      <span class="event-name"><ItemIcon kind={e.kind} /> {e.title}</span>
                       <span class="event-where muted">{[e.venue, e.city !== place && e.city].filter(Boolean).join(' · ')}</span>
                     </span>
                   </button>

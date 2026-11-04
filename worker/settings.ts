@@ -20,6 +20,8 @@ export interface Saved {
   modules?: Partial<Record<ModuleId, boolean>>
   columns?: ('yourDay' | 'news' | 'whatsOn')[]
   theme?: 'auto' | 'light' | 'dark'
+  ambientMinutes?: number
+  sleep?: { start: string; end: string } | null
   paper?: boolean
   feeds?: typeof config.news.feeds
   hiddenCategories?: string[]
@@ -47,6 +49,8 @@ export async function applySettings(env: Env, force = false) {
   if (saved.modules) fresh.modules = { ...fresh.modules, ...saved.modules }
   if (saved.columns?.length) fresh.columns = saved.columns
   if (saved.theme) fresh.display.theme = saved.theme
+  if (saved.ambientMinutes != null) fresh.display.ambientMinutes = saved.ambientMinutes
+  if (saved.sleep !== undefined) fresh.display.sleep = saved.sleep ? { ...saved.sleep, wakeMinutes: 3 } : null
   if (saved.paper != null) fresh.display.paper = saved.paper
   if (saved.feeds) fresh.news.feeds = saved.feeds
   if (saved.hiddenCategories) fresh.news.categories = fresh.news.categories.filter((c) => !saved.hiddenCategories!.includes(c.id))
@@ -86,6 +90,11 @@ export async function saveSettings(env: Env, patch: Saved) {
   if (patch.modules) next.modules = Object.fromEntries(MODULES.filter((m) => m in patch.modules!).map((m) => [m, !!patch.modules![m]]))
   if (patch.columns) next.columns = patch.columns.filter((c) => ['yourDay', 'news', 'whatsOn'].includes(c)).slice(0, 3) as Saved['columns']
   if (patch.theme && ['auto', 'light', 'dark'].includes(patch.theme)) next.theme = patch.theme
+  if (patch.ambientMinutes != null && [0, 5, 10, 30].includes(+patch.ambientMinutes)) next.ambientMinutes = +patch.ambientMinutes
+  if (patch.sleep !== undefined) {
+    const ok = (t: unknown) => typeof t === 'string' && /^\d{2}:\d{2}$/.test(t)
+    next.sleep = patch.sleep && ok(patch.sleep.start) && ok(patch.sleep.end) ? { start: patch.sleep.start, end: patch.sleep.end } : null
+  }
   if (patch.paper != null) next.paper = !!patch.paper
   if (patch.feeds) {
     next.feeds = patch.feeds

@@ -39,7 +39,7 @@ function weather() {
     current: { temp: 19, feels: 18, code: 2, isDay: true, wind: 14, humidity: 64 },
     hourly, daily,
     rain: { kind: 'soon', text: 'Rain likely this evening' },
-    advice: [{ icon: '☂️', text: 'Take an umbrella for later: rain from about 20:00' }],
+    advice: [{ icon: '☂️', text: 'Umbrella from 20:00' }, { icon: '👕', text: 'Light layer · feels 18°' }],
     warnings: [],
   }
 }

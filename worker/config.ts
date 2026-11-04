@@ -136,6 +136,7 @@ export default {
     nightlyReload: '03:00',
     theme: 'auto' as 'auto' | 'light' | 'dark', // auto = dark between sunset and sunrise
     paper: false, // daytime look: Stubli's warmer paper colours with a serif for reading
+    ambientMinutes: 10, // calm screen (time, weather, what's next) after this long without a touch; 0 = never
   },
 
   // Music on this tablet: YouTube or YouTube Music playlists and videos, added in Settings → Music.

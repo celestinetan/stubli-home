@@ -8,12 +8,13 @@ import { PROJECT_URL } from '../demo.js'
 // Changes are saved on the server (Cloudflare storage) and apply to every screen showing the dashboard.
 // Links and keys are write-only: the server only ever sends back names.
 
+// Everyday choices first; links and keys, set once, last.
 const TABS = [
   { id: 'general', label: 'General' },
   { id: 'layout', label: 'Layout' },
-  { id: 'news', label: 'News' },
   { id: 'events', label: "What's on" },
   { id: 'music', label: 'Music' },
+  { id: 'news', label: 'News' },
   { id: 'accounts', label: 'Calendars & keys' },
 ]
 const MODULE_LABELS = { weather: 'Weather', yourDay: 'Your day', news: 'News', whatsOn: "What's on", music: 'Music (Sonos)', lights: 'Lights (Hue)', tablet: 'Music on this tablet (YouTube)' }
@@ -144,7 +145,23 @@ function General({ e, save, textSize, setTextSize }) {
           <button key={id} aria-pressed={e.theme === id} onClick={() => save({ theme: id })}>{label}</button>
         ))}
       </div>
-      <p class="muted small">At night means between sunset and sunrise.</p>
+      <p class="muted small">At night means between sunset and sunrise. The whole screen is dimmed then too.</p>
+
+      <h3>Calm screen</h3>
+      <div class="segmented">
+        {[[0, 'Never'], [5, 'After 5 min'], [10, 'After 10 min'], [30, 'After 30 min']].map(([m, label]) => (
+          <button key={m} aria-pressed={(e.ambientMinutes ?? 10) === m} onClick={() => save({ ambientMinutes: m })}>{label}</button>
+        ))}
+      </div>
+      <p class="muted small">Without a touch, the screen shows just the time, weather and what's next, large. A touch brings everything back.</p>
+
+      <h3>Overnight</h3>
+      <div class="segmented">
+        {[[null, 'Stay on'], ['23:00', 'Clock only 23–06'], ['00:00', 'Clock only 00–06']].map(([start, label]) => (
+          <button key={label} aria-pressed={(e.sleep?.start ?? null) === start} onClick={() => save({ sleep: start ? { start, end: '06:00' } : null })}>{label}</button>
+        ))}
+      </div>
+      <p class="muted small">Clock only shows a dim clock on black, easy on the eyes and the screen. A touch wakes it for 3 minutes.</p>
 
       <h3>Text size <span class="muted small">· this screen only</span></h3>
       <div class="segmented">{TEXT_SIZES.map((s) => <button key={s.id} aria-pressed={textSize === s.id} onClick={() => setTextSize(s.id)}>{s.label}</button>)}</div>

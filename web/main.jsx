@@ -6,6 +6,7 @@ import { Setup } from './components/Setup.jsx'
 import { DEMO, PROJECT_URL } from './demo.js'
 import { Ticker } from './components/Ticker.jsx'
 import { Header, AdviceStrip } from './components/Header.jsx'
+import { Ambient, useIdle } from './components/Ambient.jsx'
 import { Agenda } from './components/Agenda.jsx'
 import { WhatsOn } from './components/WhatsOn.jsx'
 import { Settings } from './components/Settings.jsx'
@@ -26,6 +27,9 @@ function App() {
   const now = useNow(15_000)
   const [dash, setDash] = useState(null)
   const [story, setStory] = useState(null)
+  // A story opens with the list it came from, so the panel can step to the previous or next one.
+  const [storyList, setStoryList] = useState([])
+  const openStory = (s, list = []) => { setStory(s); setStoryList(list) }
   const [category, setCategory] = useState(null)
   const [toast, setToast] = useState(null)
   const [sheet, setSheet] = useState(null) // 'music' | 'lights' | null
@@ -39,6 +43,7 @@ function App() {
   }
   const [settings, setSettings] = useState(false)
   const [online, setOnline] = useState(true)
+  const [loadedAt, setLoadedAt] = useState(null)
   const [textSize, setTextSize] = useState(() => store.get('textSize', 'm'))
   const [wokenUntil, setWokenUntil] = useState(0)
   const [forceSleep, setForceSleep] = useState(false)
@@ -51,6 +56,7 @@ function App() {
       const d = await api('/api/dashboard')
       setTimezone(d.settings?.timezone) // before rendering, so every time shown is local to the dashboard's place
       setDash(d)
+      setLoadedAt(Date.now())
     } catch (e) { report(`dashboard: ${e.message}`) }
   }, [])
 
@@ -86,6 +92,18 @@ function App() {
 
   useEffect(() => { document.documentElement.dataset.text = textSize; store.set('textSize', textSize) }, [textSize])
 
+  // Scroll hints: a column with more below fades at the bottom and shows "More below", which
+  // scrolls on tap. iPads hide scrollbars, so without this, lower items would go unnoticed.
+  useEffect(() => {
+    const mark = () => document.querySelectorAll('.main .scroll').forEach((el) => {
+      el.classList.toggle('more', el.scrollHeight - el.scrollTop - el.clientHeight > 8)
+    })
+    const t = setInterval(mark, 1500)
+    document.addEventListener('scroll', mark, { capture: true, passive: true })
+    mark()
+    return () => { clearInterval(t); document.removeEventListener('scroll', mark, { capture: true }) }
+  }, [])
+
   // Day/night theme: automatic from today's sunrise and sunset, or fixed in Settings.
   const today = dash?.weather?.data?.daily?.[0]
   const themeSetting = dash?.settings?.theme ?? 'auto'
@@ -97,17 +115,32 @@ function App() {
     document.querySelector('meta[name=theme-color]')?.setAttribute('content', night ? '#1c1916' : paper ? '#ece3d6' : '#efede9')
   }, [night, paper])
 
-  // Modules switched off in Settings disappear; the remaining columns share the width.
+  // Modules switched off in Settings disappear; the remaining columns share the width, with Your
+  // day a little wider: it's what you look at most. In the evening (from 17:00), What's on moves
+  // next to Your day, unless you've chosen your own order.
   const mods = dash?.settings?.modules ?? {}
   const place = dash?.settings?.location ?? ''
-  const columns = (dash?.settings?.columns ?? ['yourDay', 'news', 'whatsOn']).filter((c) => mods[c] !== false)
+  const saved = dash?.settings?.columns ?? ['yourDay', 'news', 'whatsOn']
+  const evening = minutesNow(now) >= 17 * 60
+  const ordered = evening && saved.join() === 'yourDay,news,whatsOn' ? ['yourDay', 'whatsOn', 'news'] : saved
+  const columns = ordered.filter((c) => mods[c] !== false)
+  const tpl = columns.map((c) => (c === 'yourDay' && columns.length > 1 ? 'minmax(0, 1.3fr)' : 'minmax(0, 1fr)')).join(' ')
+
+  // Screen care: shift everything by a few pixels each hour (see .app in styles.css).
+  const hour = Math.floor(now / 3600_000)
+  const shift = { '--shift-x': `${[0, 2, -2, 1, -1, 3][hour % 6]}px`, '--shift-y': `${[0, -1, 1, 2, -2, 0][hour % 6]}px` }
+
+  // After a while without a touch, a calm screen with just the essentials (Settings → General).
+  // ?calm shows it straight away, to preview it.
+  const idle = useIdle((dash?.settings?.ambientMinutes ?? 10) * 60_000) || new URLSearchParams(window.location.search).has('calm')
+  const anyOpen = !!(story || category || sheet || settings || setup)
 
   const sleepCfg = dash?.settings?.sleep
   const sleeping = (forceSleep || (sleepCfg && inWindow(minutesNow(now), toMinutes(sleepCfg.start), toMinutes(sleepCfg.end)))) && Date.now() > wokenUntil
   const wake = () => { setForceSleep(false); setWokenUntil(Date.now() + (sleepCfg?.wakeMinutes ?? 3) * 60_000) }
 
   return (
-    <div class="app">
+    <div class="app" style={shift}>
       {OLD_BROWSER && (
         <div class="old-browser" role="note">
           This browser is older than Stubli Home needs (iPadOS 16 or Chrome 105), so some parts may look wrong. Updating the tablet's software usually fixes it.
@@ -123,27 +156,30 @@ function App() {
       {mods.weather !== false && <AdviceStrip weather={dash?.weather} />}
       {!online && (
         <button class="offline" onClick={() => location.reload()}>
-          Stubli Home can't reach its server right now. It keeps trying by itself; if this stays, tap here to sign in again.
+          No connection right now{loadedAt ? `, so this shows what loaded at ${fmtTime(loadedAt)}` : ''}. It keeps trying by itself; if this stays, tap here to sign in again.
         </button>
       )}
-      <main class="main" style={{ '--cols': columns.length || 1 }}>
+      <main class="main" style={{ '--cols': columns.length || 1, '--tpl': tpl }}>
         {columns.map((c) =>
-          c === 'yourDay' ? <Agenda key={c} now={now} calendar={dash?.calendar} local={dash?.local} place={place} extra={<MusicCard music={music} />} />
+          c === 'yourDay' ? <Agenda key={c} now={now} calendar={dash?.calendar} local={dash?.local} weather={mods.weather !== false ? dash?.weather : null} place={place} extra={<MusicCard music={music} />} />
           : c === 'news' ? <News key={c} now={now} news={dash?.news} categories={dash?.settings?.newsCategories} onOpenCategory={setCategory} />
-          : <WhatsOn key={c} now={now} events={dash?.events} local={dash?.local} place={place} eventSources={!!dash?.settings?.eventSources} onOpen={setStory} />)}
+          : <WhatsOn key={c} now={now} events={dash?.events} local={dash?.local} place={place} eventSources={!!dash?.settings?.eventSources} onOpen={openStory} />)}
       </main>
-      {mods.news !== false && <Ticker news={dash?.news} weather={mods.weather !== false ? dash?.weather : null} onOpen={setStory} />}
+      {mods.news !== false && <Ticker news={dash?.news} categories={dash?.settings?.newsCategories} weather={mods.weather !== false ? dash?.weather : null} onOpen={openStory} />}
       {!columns.includes('yourDay') && <MusicCard music={music} floating />}
       <HomeBar home={home} barScenes={dash?.settings?.barScenes} onMusic={() => setSheet('music')} onLights={() => setSheet('lights')}
         tablet={mods.tablet !== false && dash?.settings?.tabletMusic?.length ? <TabletMusicBar music={music} links={dash.settings.tabletMusic} /> : null} />
 
-      {category && <CategoryPanel card={category} now={now} onOpen={setStory} onClose={() => setCategory(null)} />}
-      {story && <StoryPanel story={story} now={now} onClose={() => setStory(null)} />}
+      {category && <CategoryPanel card={category} now={now} onOpen={openStory} onClose={() => setCategory(null)} />}
+      {story && <StoryPanel story={story} list={storyList} now={now} onOpen={openStory} onClose={() => setStory(null)} />}
       {toast && <div class="toast" role="status">{toast}</div>}
       {sheet === 'music' && <MusicSheet home={home} closing={closing} onClose={closeSheet} tablet={music} tabletLinks={mods.tablet !== false ? dash?.settings?.tabletMusic ?? [] : []} />}
       {sheet === 'lights' && <LightsSheet home={home} closing={closing} onClose={closeSheet} />}
       {setup && <Setup onSaved={load} onDone={() => { setSetup(false); load() }} />}
       {settings && <Settings onClose={() => setSettings(false)} onSaved={load} textSize={textSize} setTextSize={setTextSize} />}
+      {idle && !anyOpen && !sleeping && dash?.settings?.ambientMinutes !== 0 && (
+        <Ambient now={now} weather={mods.weather !== false ? dash?.weather?.data : null} calendar={dash?.calendar?.data} place={place} />
+      )}
       {sleeping && (
         <button class="sleep" onClick={wake} aria-label="Wake screen">
           <span>{fmtTime(now)}</span>

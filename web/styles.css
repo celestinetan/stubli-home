@@ -6,8 +6,10 @@
    No CSS nesting (Safari 16.0–16.4 lacks it). Sizes in rem so the text-size setting scales everything. */
 
 :root {
-  /* Type scale: six steps (plus display sizes for the clock and temperatures). */
-  --fs-1: 0.75rem; --fs-2: 0.875rem; --fs-3: 1rem; --fs-4: 1.125rem; --fs-5: 1.375rem; --fs-6: 1.625rem;
+  /* Wall type scale: read from a few metres away, so nothing goes below 14px and the lines that
+     matter (next event, headlines, event titles) sit at 20px and up. Plus display sizes for the
+     clock and temperatures. */
+  --fs-1: 0.875rem; --fs-2: 1rem; --fs-3: 1.125rem; --fs-4: 1.25rem; --fs-5: 1.5rem; --fs-6: 1.875rem;
   /* Stubli's tokens (DESIGN.md §3.1): a light ground, panels one tone darker, Moss for actions. */
   --bg: #fbfaf8;
   --surface: #efede9;
@@ -153,7 +155,7 @@ img { display: block; }
 
 .main {
   display: grid;
-  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  grid-template-columns: var(--tpl, repeat(var(--cols, 3), minmax(0, 1fr)));
   gap: 14px;
   min-height: 0;
 }
@@ -169,7 +171,7 @@ img { display: block; }
   color: var(--muted); margin-bottom: 10px;
 }
 .panel > h2 .updated { text-transform: none; letter-spacing: 0; }
-.scroll { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); }
+.scroll.more { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); }
 .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; padding-bottom: 16px; flex: 1; }
 
 .agenda { container-type: inline-size; }
@@ -177,7 +179,7 @@ img { display: block; }
 .agenda-day h3 { font-size: var(--fs-4); font-weight: 600; margin-bottom: 8px; }
 .agenda-day > p { font-size: var(--fs-3); }
 .event {
-  display: grid; grid-template-columns: 7.2rem 1fr; column-gap: 12px;
+  display: grid; grid-template-columns: 8.6rem 1fr; column-gap: 12px;
   padding: 8px 0 8px 12px; border-left: 4px solid var(--cal, var(--accent));
   margin-bottom: 6px;
 }
@@ -193,7 +195,7 @@ button.local-item:active, .culture-story:active { opacity: 0.6; }
 .culture-story { display: grid; gap: 2px; width: 100%; padding: 6px 0; min-height: 44px; }
 .culture-story .cat-headline { font-size: var(--fs-3); }
 .outlook ul { display: grid; gap: 10px; }
-.outlook-day { display: grid; grid-template-columns: 7.2rem 1fr; column-gap: 12px; font-size: var(--fs-3); }
+.outlook-day { display: grid; grid-template-columns: 8.6rem 1fr; column-gap: 12px; font-size: var(--fs-3); }
 .outlook-label { font-weight: 600; }
 .outlook-events { display: grid; gap: 4px; min-width: 0; }
 .outlook-event { padding-left: 10px; border-left: 3px solid var(--cal, var(--accent)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -233,12 +235,11 @@ button.local-item:active, .culture-story:active { opacity: 0.6; }
 }
 .cat-card {
   display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden;
-  background: var(--bg); border-top: 5px solid var(--cat);
+  background: var(--bg);
   border-radius: 12px; padding: 10px 12px;
 }
 .cat-card:active { transform: scale(0.98); }
-.cat-name { display: flex; justify-content: space-between; font-size: var(--fs-2); font-weight: 700; color: var(--cat); }
-:root[data-theme='night'] .cat-name { filter: brightness(1.6); }
+.cat-name { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-2); font-weight: 600; color: var(--muted); }
 .cat-count { color: var(--muted); font-weight: 500; letter-spacing: 0; }
 .cat-story { display: grid; gap: 2px; }
 .cat-headline {
@@ -247,9 +248,8 @@ button.local-item:active, .culture-story:active { opacity: 0.6; }
 }
 .cat-meta { font-size: var(--fs-1); color: var(--muted); }
 .cat-meta .badge { padding: 0 7px; }
-.category-panel { max-width: 760px; border-top: 6px solid var(--cat); }
-.cat-title { color: var(--cat); padding-right: 56px; }
-:root[data-theme='night'] .cat-title { filter: brightness(1.6); }
+.category-panel { max-width: 760px; }
+.cat-title { padding-right: 56px; }
 
 .pending { opacity: 0.55; animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: 0.3; } }
@@ -453,7 +453,10 @@ input[type='range']::-webkit-slider-thumb {
 }
 
 /* ---------- what's on ---------- */
-.filters { display: grid; gap: 6px; margin-bottom: 10px; flex: none; }
+.filters { display: flex; gap: 8px; margin-bottom: 10px; flex: none; align-items: center; }
+.filters .segmented { flex: 1; min-width: 0; }
+.filters .segmented button { font-size: var(--fs-2); padding: 0 6px; }
+.only-here { flex: none; min-height: 52px; white-space: nowrap; }
 .panel > h2 { flex: none; }
 .segmented.small { padding: 3px; }
 .segmented.small button { min-height: 36px; font-size: var(--fs-2); }
@@ -499,9 +502,8 @@ input[type='range']::-webkit-slider-thumb {
   .header > .forecast { grid-column: 1 / -1; border-left: 0; padding: 8px 0 0; }
 }
 
-.free-badge { margin-left: 6px; font-size: 0.9em; }
 /* Free events stand out with a sage green outline and tint. */
-.event-item.free { border: 2px solid var(--accent); border-radius: 12px; background: var(--free-bg); padding-left: 8px; margin: 4px 0; }
+.event-item.free { border: 1.5px solid var(--accent); border-radius: 12px; background: var(--free-bg); padding-left: 8px; margin: 4px 0; }
 :root { --free-bg: #eef2ea; }
 :root[data-theme='night'] { --free-bg: #252a20; }
 .event-when { font-size: var(--fs-2); }
@@ -608,15 +610,15 @@ button.now-icon:active { transform: scale(0.94); }
 .btn[disabled] { opacity: 0.45; }
 
 /* ---------- headline ticker ---------- */
-.ticker { flex: none; overflow: hidden; height: 40px; display: flex; align-items: center; border-radius: var(--radius);
-  background: var(--accent); color: var(--accent-ink); /* Stubli's green bar, so it reads apart from the panels */ position: relative; }
+.ticker { flex: none; overflow: hidden; height: 44px; display: flex; align-items: center; border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); position: relative; } /* quiet, in the panels' tone: it's news, not an action */
 /* Soft ends in the bar's own colour, so the bar keeps its edges while the text fades. */
 .ticker::before, .ticker::after { content: ''; position: absolute; top: 0; bottom: 0; width: 28px; z-index: 1; pointer-events: none; }
-.ticker::before { left: 0; background: linear-gradient(to right, var(--accent), transparent); }
-.ticker::after { right: 0; background: linear-gradient(to left, var(--accent), transparent); }
+.ticker::before { left: 0; background: linear-gradient(to right, var(--surface), transparent); }
+.ticker::after { right: 0; background: linear-gradient(to left, var(--surface), transparent); }
 .ticker-track { display: flex; flex: none; white-space: nowrap; will-change: transform; }
 .tick { display: inline-flex; align-items: center; font-size: var(--fs-3); padding: 0 14px; }
-.tick::after { content: '·'; opacity: 0.6; margin-left: 28px; }
+.tick::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); opacity: 0.7; margin-left: 28px; }
 .tick button { min-height: 40px; font-weight: 500; }
 .tick-warn, .tick-rain { font-weight: 600; }
 .tick-warn { color: var(--warn-ink); }
@@ -729,3 +731,92 @@ button.now-icon:active { transform: scale(0.94); }
 .pick-row:active .pick-play, .pick-row.pending .pick-play { color: var(--accent-ink); background: var(--accent); }
 .pick-now { display: flex; align-items: center; gap: 8px; font-size: var(--fs-2); color: var(--accent); font-weight: 600; flex: none; }
 .np-eq-box { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; background: var(--surface-2); flex: none; }
+
+/* One icon style: Stubli's line icons beside events and saved items. */
+.item-icon { display: inline-grid; place-items: center; vertical-align: -3px; color: var(--muted); margin-right: 2px; }
+.event-item.free .item-icon { color: var(--accent); }
+.local-icon { color: var(--muted); padding-top: 2px; }
+
+/* Screen care: the whole layout shifts by a few pixels every hour (set in main.jsx), so nothing
+   sits on the same pixels for days. */
+.app { transform: translate(var(--shift-x, 0), var(--shift-y, 0)); transition: transform 2s ease; }
+
+/* ---------- audit fixes ---------- */
+
+/* Your day opens with today in one sentence, in Stubli's serif. */
+.today-line { font-family: Literata, Georgia, serif; font-size: var(--fs-5); line-height: 1.3; margin-bottom: 14px; }
+
+/* "More below" on columns that scroll (marked by main.jsx). */
+.panel { position: relative; }
+.panel:has(.scroll.more)::after {
+  content: 'More below'; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+  font-size: var(--fs-1); font-weight: 600; color: var(--muted); background: var(--surface-2);
+  padding: 3px 10px; border-radius: 999px; pointer-events: none;
+}
+
+/* Weather: one-line tips; the curve sits under the hours. */
+.now-advice { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-2); }
+.strip .chip { white-space: nowrap; }
+.fc-curve { grid-column: 1 / -1; grid-row: 2; width: 100%; height: 34px; display: block; margin-top: -4px; }
+.fc-day { grid-row: 3; }
+.fc-curve-line { fill: none; stroke: var(--accent); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+.fc-curve-rain { fill: var(--rain); opacity: 0.45; }
+
+/* Bottom bar: now playing gets the room; lights are one control. */
+.lights-ctl { display: flex; align-items: center; gap: 6px; }
+.lights-ctl .home-btn { min-height: 52px; }
+.lights-label { max-width: 11ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lights-ctl .power { width: 52px; height: 52px; background: var(--surface-2); color: var(--muted); }
+.lights-ctl .power.on { color: var(--accent); }
+.bar { grid-template-columns: minmax(0, 1fr) auto auto; }
+.quick:empty { display: none; }
+
+/* Story panel: a clear headline, then the summary, then where to read it. */
+.story-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: var(--fs-2); color: var(--muted); padding-right: 56px; margin-bottom: 8px; }
+.story-title { font-family: Literata, Georgia, serif; font-size: var(--fs-6) !important; line-height: 1.2; font-weight: 600; margin-bottom: 14px !important; }
+.story-full { font-size: var(--fs-4); line-height: 1.5; max-width: 62ch; }
+.differences { font-size: var(--fs-3); margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); max-width: 62ch; }
+.differences strong { display: block; font-size: var(--fs-2); color: var(--muted); margin-bottom: 2px; }
+.story-note { margin-top: 12px; }
+.source-title { font-size: var(--fs-3); }
+.story-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+/* The same pressed feel on everything you can tap. */
+button:not([disabled]):active, a.btn:active { transform: scale(0.97); }
+button[disabled] { opacity: 0.4; }
+
+/* Night: the whole screen a step dimmer, easy in a dark room. */
+:root[data-theme='night'] .app { filter: brightness(0.82); }
+
+/* Calm screen after a while without a touch (see Ambient.jsx). */
+.ambient {
+  position: fixed; inset: 0; z-index: 18; background: var(--bg); color: var(--ink);
+  display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; padding: 40px;
+  animation: fade 1.2s ease-out;
+}
+:root[data-theme='night'] .ambient { filter: brightness(0.75); }
+.ambient-time { font-size: clamp(7rem, 18vw, 12rem); font-weight: 200; letter-spacing: -0.04em; line-height: 0.9; font-variant-numeric: tabular-nums; }
+.ambient-date { font-size: var(--fs-5); color: var(--muted); margin-top: -6px; }
+.ambient-weather { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
+.ambient-temp { font-size: 4rem; font-weight: 250; line-height: 1; }
+.ambient-cond { font-size: var(--fs-5); color: var(--muted); max-width: 24ch; text-align: left; }
+.ambient-next { display: grid; gap: 2px; margin-top: 12px; padding: 14px 22px; border-radius: 16px; background: var(--surface); border-left: 6px solid var(--cal, var(--accent)); text-align: left; min-width: min(460px, 80vw); }
+.ambient-next-label { font-size: var(--fs-3); color: var(--muted); font-weight: 600; }
+.ambient-next-title { font-family: Literata, Georgia, serif; font-size: var(--fs-6); font-weight: 600; }
+.ambient-hint { position: absolute; bottom: 28px; left: 0; right: 0; font-size: var(--fs-2); color: var(--muted); opacity: 0.7; }
+
+/* Portrait (iPad upright): Your day and News side by side, What's on across the bottom. */
+@container (max-width: 860px) {
+  .main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+  .event { grid-template-columns: 1fr; }
+  .event-loc { grid-column: 1; }
+  .main:has(> .whatson):has(> .panel:nth-child(3)) { grid-template-rows: minmax(0, 1.5fr) minmax(0, 1fr); }
+  .main > .whatson { display: flex; }
+  .main > .panel:nth-child(3) { grid-column: 1 / -1; }
+  .main > .panel:only-child { grid-column: 1 / -1; }
+}
+@container (max-width: 620px) {
+  .main { grid-template-columns: 1fr !important; grid-template-rows: none; overflow-y: auto; }
+  .main > .panel { min-height: 50vh; }
+  .whatson { grid-column: auto; }
+}

@@ -23,7 +23,7 @@ export function Header({ now, weather, hideWeather, location, onSettings }) {
         <>
           <div class="now">
             <div class="now-main">
-              <button class="now-icon" aria-label={weatherLabel(w.current.code)} onClick={() => setTaps((t) => t + 1)}><WeatherIcon code={w.current.code} isDay={w.current.isDay} size={64} face play={play} /></button>
+              <button class="now-icon" aria-label={weatherLabel(w.current.code)} onClick={() => setTaps((t) => t + 1)}><WeatherIcon code={w.current.code} isDay={w.current.isDay} size={84} face play={play} /></button>
               <span class="now-temp">{round(w.current.temp)}°</span>
               <span class="now-cond">
                 <span class="now-label">{weatherLabel(w.current.code)}</span>
@@ -50,9 +50,9 @@ export function Header({ now, weather, hideWeather, location, onSettings }) {
                 <span class="fc-label">{fmtTime(h.t)}</span>
                 <span class="fc-icon"><WeatherIcon code={h.code} isDay={h.isDay} size={28} /></span>
                 <span class="fc-temp">{round(h.temp)}°</span>
-                <span class="fc-rain" style={{ '--pop': `${(h.pop ?? 0) >= 20 ? h.pop : 0}%` }} title={`${round(h.pop ?? 0)}% rain`} />
               </div>
             ))}
+            <Curve hours={w.hourly.slice(0, 6)} />
             {w.daily.slice(1).filter((d) => d.max != null).slice(0, 3).map((d) => (
               <div class="fc-day" key={d.t}>
                 <span class="fc-label">{fmtDay(d.t)}</span>
@@ -70,6 +70,23 @@ export function Header({ now, weather, hideWeather, location, onSettings }) {
 
       <button class="icon-btn settings-btn" onClick={onSettings} aria-label="Settings"><Gear /></button>
     </header>
+  )
+}
+
+// The next 6 hours as one picture: the temperature as a line, rain chances as soft bars below.
+function Curve({ hours }) {
+  if (hours.length < 2) return null
+  const temps = hours.map((h) => h.temp)
+  const lo = Math.min(...temps), hi = Math.max(...temps)
+  const y = (t) => (hi === lo ? 12 : 4 + (1 - (t - lo) / (hi - lo)) * 16)
+  const x = (i) => ((i + 0.5) / hours.length) * 600
+  const line = hours.map((h, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(h.temp).toFixed(1)}`).join(' ')
+  const wet = hours.some((h) => (h.pop ?? 0) >= 20)
+  return (
+    <svg class="fc-curve" viewBox="0 0 600 34" preserveAspectRatio="none" aria-hidden="true">
+      {wet && hours.map((h, i) => (h.pop ?? 0) >= 20 && <rect key={i} class="fc-curve-rain" x={x(i) - 30} width="60" y={34 - (h.pop / 100) * 12} height={(h.pop / 100) * 12} rx="3" />)}
+      <path class="fc-curve-line" d={line} />
+    </svg>
   )
 }
 

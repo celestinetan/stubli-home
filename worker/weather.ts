@@ -179,22 +179,22 @@ function advice(cur: Current, nowcast: Slot[], hourly: Hour[]) {
   const hhmm = (t: number) => new Intl.DateTimeFormat('en-GB', { timeZone: config.timezone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(t)
   const items: { icon: string; text: string }[] = []
 
-  if (snowy) items.push({ icon: '❄️', text: 'Snow — wear boots with grip' })
-  else if (wetSlot) items.push({ icon: '☂️', text: wetSlot.t <= now ? 'Take an umbrella — raining now' : `Take an umbrella — rain from about ${hhmm(wetSlot.t)}` })
-  else if (likelyWet) items.push({ icon: '☂️', text: 'Umbrella advised — showers possible' })
+  if (snowy) items.push({ icon: '❄️', text: 'Snow: boots with grip' })
+  else if (wetSlot) items.push({ icon: '☂️', text: wetSlot.t <= now ? 'Umbrella: raining now' : `Umbrella from ${hhmm(wetSlot.t)}` })
+  else if (likelyWet) items.push({ icon: '☂️', text: 'Umbrella: showers possible' })
 
   const layer =
-    feelsMin < 0 ? 'Winter coat, hat and gloves' :
-    feelsMin < 6 ? 'Warm coat and a scarf' :
+    feelsMin < 0 ? 'Coat, hat, gloves' :
+    feelsMin < 6 ? 'Warm coat, scarf' :
     feelsMin < 12 ? 'Warm jacket' :
-    feelsMin < 17 ? 'Light jacket or jumper' :
-    feelsMin < 23 ? 'A light layer is enough' : 'T-shirt weather'
-  items.push({ icon: feelsMin < 12 ? '🧥' : feelsMin < 23 ? '👕' : '😎', text: `${layer} — feels like ${Math.round(feelsMin)}°` })
+    feelsMin < 17 ? 'Light jacket' :
+    feelsMin < 23 ? 'Light layer' : 'T-shirt weather'
+  items.push({ icon: feelsMin < 12 ? '🧥' : feelsMin < 23 ? '👕' : '😎', text: `${layer} · feels ${Math.round(feelsMin)}°` })
 
-  if (feelsNow - feelsMin >= 4) items.push({ icon: '🧣', text: 'Getting colder — bring an extra layer' })
-  if (gusts >= 50) items.push({ icon: '💨', text: `Gusts to ${Math.round(gusts)} km/h — a hood beats an umbrella` })
-  if (feelsMin <= 1 && (wetSlot || likelyWet) && !snowy) items.push({ icon: '⚠️', text: 'Possible ice — watch your step' })
-  if (uv >= 6) items.push({ icon: '🕶️', text: `UV ${Math.round(uv)} — sunglasses and sunscreen` })
+  if (feelsNow - feelsMin >= 4) items.push({ icon: '🧣', text: 'Getting colder: extra layer' })
+  if (gusts >= 50) items.push({ icon: '💨', text: `Gusts ${Math.round(gusts)} km/h: hood, not umbrella` })
+  if (feelsMin <= 1 && (wetSlot || likelyWet) && !snowy) items.push({ icon: '⚠️', text: 'Possible ice: watch your step' })
+  if (uv >= 6) items.push({ icon: '🕶️', text: `UV ${Math.round(uv)}: sunglasses, sunscreen` })
   return items.slice(0, 3)
 }
 
