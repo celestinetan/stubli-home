@@ -15,7 +15,7 @@
   --surface: #efede9;
   --surface-2: #e6e1d8;
   --ink: #22201d;
-  --muted: #625d57;
+  --muted: #514c46; /* a step darker than Stubli's #625d57: read from across the room */
   --line: #e2ddd4;
   --accent: #4f6a4a;
   --accent-ink: #fff;
@@ -33,7 +33,7 @@
   --surface: #28231e;
   --surface-2: #3a2f26;
   --ink: #ece4d8;
-  --muted: #aa9e90;
+  --muted: #c0b4a6;
   --line: #352d25;
   --accent: #a8bf98;
   --accent-ink: #1c1916;
@@ -51,12 +51,12 @@
   --surface: #ece3d6;
   --surface-2: #e2d2bb;
   --ink: #2e2620;
-  --muted: #6a5d52;
+  --muted: #594d43;
   --line: #e0d3c0;
   --on: #cbd3b6;
   --on-ink: #2e2620;
 }
-:root[data-look='paper']:not([data-theme='night']) :is(.story-headline, .story-summary, .story-full, .panel-title, .cat-story, .next-title) {
+:root[data-look='paper']:not([data-theme='night']) :is(.story-headline, .story-summary, .story-full, .panel-title) {
   font-family: Literata, Georgia, 'Times New Roman', serif;
 }
 
@@ -108,13 +108,13 @@ img { display: block; }
   padding-right: 48px; /* room for the settings button */
   position: relative;
 }
-.time { font-size: 4.75rem; font-weight: 250; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.time { font-size: 4.75rem; font-weight: 400; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
 .date { font-size: var(--fs-4); color: var(--muted); margin-top: 4px; }
 
 .now { display: flex; align-items: center; gap: 12px; min-width: 0; max-width: 300px; }
 .now-icon { font-size: 3.25rem; line-height: 1; }
 .now-text { min-width: 0; }
-.now-temp { font-size: 3.25rem; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+.now-temp { font-size: 3.25rem; font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; }
 .now-meta { font-size: var(--fs-3); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .forecast { min-width: 0; display: grid; gap: 6px; }
@@ -383,7 +383,7 @@ input[type='range']::-webkit-slider-thumb {
 .sleep {
   position: fixed; inset: 0; z-index: 20; background: #000; color: #3a3a3a;
   display: grid; place-items: center; text-align: center;
-  font-size: 7rem; font-weight: 200; font-variant-numeric: tabular-nums;
+  font-size: 7rem; font-weight: 350; font-variant-numeric: tabular-nums;
 }
 
 @container (max-width: 340px) {
@@ -475,11 +475,11 @@ input[type='range']::-webkit-slider-thumb {
 .header > .clock { padding-left: 0; display: flex; flex-direction: column; justify-content: center; }
 .header > .now { border-left: 1px solid var(--line); max-width: none; display: flex; flex-direction: column; justify-content: center; gap: 6px; align-items: flex-start; }
 .header > .forecast { border-left: 1px solid var(--line); padding-right: 0; }
-.time { font-size: 4.5rem; font-weight: 200; }
+.time { font-size: 4.5rem; font-weight: 400; }
 .date { font-size: var(--fs-4); }
 .now-main { display: flex; align-items: center; gap: 10px; }
 .now-icon { font-size: 2.75rem; }
-.now-temp { font-size: 3.5rem; font-weight: 200; line-height: 1; letter-spacing: -0.02em; }
+.now-temp { font-size: 3.5rem; font-weight: 400; line-height: 1; letter-spacing: -0.02em; }
 .now-cond { display: grid; gap: 2px; }
 .now-label { font-size: var(--fs-4); font-weight: 500; }
 .now-hl { font-size: var(--fs-2); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -708,7 +708,7 @@ button.now-icon:active { transform: scale(0.94); }
 .now-playing { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
 .np-where { font-size: var(--fs-2); color: var(--muted); }
 .np-meta { display: grid; gap: 4px; }
-.np-big-title { font-family: Literata, Georgia, serif; font-size: clamp(1.625rem, 3.2vw, 2.25rem) !important; font-weight: 600; line-height: 1.15; margin: 0 !important; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.np-big-title { font-size: clamp(1.625rem, 3.2vw, 2.25rem) !important; font-weight: 650; line-height: 1.15; margin: 0 !important; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .np-big-artist { font-size: var(--fs-4); color: var(--ink); opacity: .8; }
 .np-from { font-size: var(--fs-2); color: var(--muted); }
 .np-time { display: grid; grid-template-columns: 1fr 1fr; row-gap: 6px; font-size: var(--fs-2); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -746,8 +746,9 @@ button.now-icon:active { transform: scale(0.94); }
 
 /* ---------- audit fixes ---------- */
 
-/* Your day opens with today in one sentence, in Stubli's serif. */
-.today-line { font-family: Literata, Georgia, serif; font-size: var(--fs-5); line-height: 1.3; margin-bottom: 14px; }
+/* Your day opens with today in one sentence. Figtree throughout the dashboard; Literata, the
+   serif, only where you read up close (the story panel, and the optional Paper look). */
+.today-line { font-size: var(--fs-5); font-weight: 600; line-height: 1.3; margin-bottom: 14px; }
 
 /* "More below" on columns that scroll (marked by main.jsx). */
 .panel { position: relative; }
@@ -798,14 +799,14 @@ button[disabled] { opacity: 0.4; }
   animation: fade 1.2s ease-out;
 }
 :root[data-theme='night'] .ambient { filter: brightness(0.75); }
-.ambient-time { font-size: clamp(7rem, 18vw, 12rem); font-weight: 200; letter-spacing: -0.04em; line-height: 0.9; font-variant-numeric: tabular-nums; }
+.ambient-time { font-size: clamp(7rem, 18vw, 12rem); font-weight: 350; letter-spacing: -0.04em; line-height: 0.9; font-variant-numeric: tabular-nums; }
 .ambient-date { font-size: var(--fs-5); color: var(--muted); margin-top: -6px; }
 .ambient-weather { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
-.ambient-temp { font-size: 4rem; font-weight: 250; line-height: 1; }
+.ambient-temp { font-size: 4rem; font-weight: 400; line-height: 1; }
 .ambient-cond { font-size: var(--fs-5); color: var(--muted); max-width: 24ch; text-align: left; }
 .ambient-next { display: grid; gap: 2px; margin-top: 12px; padding: 14px 22px; border-radius: 16px; background: var(--surface); border-left: 6px solid var(--cal, var(--accent)); text-align: left; min-width: min(460px, 80vw); }
 .ambient-next-label { font-size: var(--fs-3); color: var(--muted); font-weight: 600; }
-.ambient-next-title { font-family: Literata, Georgia, serif; font-size: var(--fs-6); font-weight: 600; }
+.ambient-next-title { font-size: var(--fs-6); font-weight: 650; }
 .ambient-hint { position: absolute; bottom: 28px; left: 0; right: 0; font-size: var(--fs-2); color: var(--muted); opacity: 0.7; }
 
 /* Portrait (iPad upright): Your day and News side by side, What's on across the bottom. */

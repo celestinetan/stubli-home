@@ -2,6 +2,7 @@
 
 ## 1.1 – 4 November 2026
 
+- Type for the wall: Figtree throughout the dashboard (Literata only in the story panel and the Paper look), a sturdier clock and temperature, and darker secondary text.
 - Redesign after a UX review, for reading from across the room: a larger type scale, Your day wider with today in one sentence at the top, calmer colours (neutral news cards, a quiet ticker), one line-icon style, and What's on next to Your day in the evening.
 - Upright iPads keep What's on, across the bottom. Columns that scroll say "More below".
 - Night dims the whole screen; a calm screen (time, weather, what's next) after 10 minutes without a touch; optional clock-only overnight; the layout shifts a few pixels each hour to spare the screen.
