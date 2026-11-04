@@ -92,6 +92,7 @@ export async function sonosAction(env: Env, groupId: string, action: string, bod
     case 'next': return post(`/groups/${g}/playback/skipToNextTrack`)
     case 'previous': return post(`/groups/${g}/playback/skipToPreviousTrack`)
     case 'shuffle': return post(`/groups/${g}/playback/playMode`, { playModes: { shuffle: !!body.on } })
+    case 'mute': return post(`/groups/${g}/groupVolume/mute`, { muted: !!body.on })
     case 'volume': return post(`/groups/${g}/groupVolume`, { volume: Math.max(0, Math.min(100, Math.round(body.volume))) })
     case 'favorite': return post(`/groups/${g}/favorites`, { favoriteId: String(body.id), playOnCompletion: true, action: 'REPLACE' })
     case 'playlist': return post(`/groups/${g}/playlists`, { playlistId: String(body.id), playOnCompletion: true, action: 'REPLACE' })

@@ -903,3 +903,15 @@ button[disabled] { opacity: 0.4; }
 .tl-day { font-size: var(--fs-4); font-weight: 650; margin: 10px 0 0; padding-top: 12px; border-top: 1px solid var(--surface-2); }
 .tl-empty { font-size: var(--fs-2); color: var(--muted); padding-left: calc(3.6rem + 28px); }
 .agenda.panel:has(.scroll.more)::after { content: 'More below'; }
+
+/* Volume: mute, −, the level 0–10, + (see Volume in Home.jsx). */
+.volume { display: inline-flex; align-items: center; gap: 2px; flex: none; color: var(--ink); }
+.volume .vol-mute { color: var(--muted); }
+.volume.muted .vol-mute { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.vol-step { background: var(--surface-2); }
+.vol-level { min-width: 2.6em; text-align: center; font-size: var(--fs-3); font-weight: 650; font-variant-numeric: tabular-nums; }
+.volume.muted .vol-level { font-size: var(--fs-1); color: var(--muted); font-weight: 600; }
+.volume.big { justify-content: center; gap: 10px; align-self: center; }
+.volume.big .vol-level { font-size: var(--fs-5); min-width: 3em; }
+.volume.big .vol-step { width: 52px; height: 52px; }
+@container (max-width: 860px) { .bar .volume .vol-mute { display: none; } }

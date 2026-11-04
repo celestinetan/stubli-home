@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'preact/hooks'
 import { api, report, store } from '../lib.js'
-import { Play, Pause, Next, Prev, Close, Bulb, Power, Music, Shuffle, Speaker } from './icons.jsx'
+import { Play, Pause, Next, Prev, Close, Bulb, Power, Music, Shuffle, Speaker, SpeakerOff, Minus, Plus } from './icons.jsx'
 
 // ---------- data ----------
 
@@ -110,7 +110,7 @@ export function HomeBar({ home, barScenes, onMusic, onLights, tablet }) {
                 </button>
                 <button class="icon-btn" aria-label="Next track" onClick={() => sonosDo(group.id, 'next')}><Next /></button>
               </span>
-              <span class="bar-volume"><Speaker size={18} /><Slider label="Volume" value={group.volume ?? 0} onCommit={(v) => sonosDo(group.id, 'volume', { volume: v }, { volume: v })} /></span>
+              <Volume group={group} sonosDo={sonosDo} busy={busy} />
             </>
           ) : <span class="muted small">No speakers found</span>}
       </div>
@@ -226,7 +226,7 @@ export function MusicSheet({ home, onClose, closing, tablet, tabletLinks = [] })
                 <button class="icon-btn" aria-label="Next" onClick={() => sonosDo(group.id, 'next')}><Next size={28} /></button>
                 <span />
               </div>
-              <div class="np-volume"><Speaker size={20} /><Slider label="Volume" value={group.volume ?? 0} onCommit={(v) => sonosDo(group.id, 'volume', { volume: v }, { volume: v })} /></div>
+              <Volume group={group} sonosDo={sonosDo} busy={busy} big />
               {group.next?.title && (
                 <p class="up-next"><span class="up-next-label">Up next</span><span class="up-next-title">{group.next.title}{group.next.artist ? ` · ${group.next.artist}` : ''}</span></p>
               )}
@@ -338,6 +338,37 @@ function useElapsed(group) {
   }, [group?.state])
   const pos = base.pos + (playing(group) ? Math.max(0, now - base.at) : 0)
   return Math.min(pos, group?.duration ?? pos)
+}
+
+// Volume as − and + in ten steps (Sonos counts 0–100; one step is 10), plus mute. Several quick
+// taps add up on screen and are sent once, half a second after the last.
+function Volume({ group, sonosDo, busy, big }) {
+  const [local, setLocal] = useState(null)
+  const timer = useRef(0)
+  const latest = useRef(null) // the level after the last tap, so quick taps add up
+  useEffect(() => { if (!timer.current) { setLocal(null); latest.current = null } }, [group.volume])
+  const level = local ?? Math.round((group.volume ?? 0) / 10)
+  const step = (d) => {
+    const next = Math.max(0, Math.min(10, (latest.current ?? level) + d))
+    latest.current = next
+    setLocal(next)
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      timer.current = 0
+      latest.current = null
+      sonosDo(group.id, 'volume', { volume: next * 10 }, { volume: next * 10, muted: false })
+    }, 500)
+  }
+  const muted = !!group.muted
+  return (
+    <span class={`volume ${big ? 'big' : ''} ${muted ? 'muted' : ''}`} role="group" aria-label="Volume">
+      <button class={`icon-btn vol-mute ${busy(`${group.id}:mute`)}`} aria-label={muted ? 'Unmute' : 'Mute'} aria-pressed={muted}
+        onClick={() => sonosDo(group.id, 'mute', { on: !muted }, { muted: !muted })}>{muted ? <SpeakerOff size={20} /> : <Speaker size={20} />}</button>
+      <button class="icon-btn vol-step" aria-label="Volume down" disabled={level === 0} onClick={() => step(-1)}><Minus size={20} /></button>
+      <span class="vol-level" aria-live="polite">{muted ? 'Muted' : level}</span>
+      <button class="icon-btn vol-step" aria-label="Volume up" disabled={level === 10} onClick={() => step(1)}><Plus size={20} /></button>
+    </span>
+  )
 }
 
 // Range slider that updates on screen while dragging and sends once on release.
