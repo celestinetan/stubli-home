@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks'
-import { isoDay, weekdayOf, store, fmtTime } from '../lib.js'
+import { isoDay, weekdayOf, store, fmtTime, activeOn } from '../lib.js'
 import { Updated } from './Updated.jsx'
 
 const DAY = 86_400_000
@@ -11,7 +11,7 @@ const WHEN = [
 const WHERE = [
   { id: 'all', label: 'All' },
   { id: 'zurich', label: 'Zürich' },
-  { id: 'nearby', label: 'Nearby' },
+  { id: 'nearby', label: 'Elsewhere' },
 ]
 
 function kindIcon(kind) {
@@ -61,8 +61,7 @@ export function WhatsOn({ now, events, local, place = '', onOpen, eventSources =
     const out = []
     for (let i = 0; i <= 7; i++) {
       const t = now + i * DAY, iso = isoDay(t), wd = weekdayOf(t)
-      const on = (!it.from || it.from <= iso) && (!it.to || it.to >= iso) && (!it.weekdays || it.weekdays.includes(wd)) && (it.from || it.weekdays)
-      if (on) out.push({ source: 'Curated', title: it.title, venue: it.place ?? '', city: place, date: iso, time: '', kind: 'Exhibition', url: it.url ?? '', nearby: false, free: true, icon: it.icon })
+      if (activeOn(it, iso, wd)) out.push({ source: 'Curated', title: it.title, venue: it.place ?? '', city: it.city ?? place, date: iso, time: it.time ?? '', kind: 'Exhibition', url: it.url ?? '', nearby: !!it.city && it.city !== place, free: true, icon: it.icon, teaser: it.note })
     }
     return out
   })

@@ -1,4 +1,5 @@
 import config from './config'
+import { FREE_DAYS } from './free-days'
 
 // Your curated list (config.local.events) plus public and school holidays from the free
 // OpenHolidays API (mostly European countries; elsewhere only your own items show). The dashboard decides what is "today", so it switches at midnight.
@@ -13,6 +14,9 @@ export interface LocalItem {
   from?: string // YYYY-MM-DD, inclusive
   to?: string
   weekdays?: number[] // 0 = Sunday … 6 = Saturday
+  nth?: number // 1 = only the first of those weekdays in the month
+  city?: string // when it isn't in your own city
+  free?: boolean
 }
 
 const API = 'https://openholidaysapi.org'
@@ -22,7 +26,12 @@ export async function fetchLocal() {
   const until = new Date(Date.now() + 60 * 86400_000).toISOString().slice(0, 10)
   const q = (kind: string) =>
     `${API}/${kind}?countryIsoCode=${config.location.country}${config.local.subdivision ? `&subdivisionCode=${config.local.subdivision}` : ''}&languageIsoCode=EN&validFrom=${today}&validTo=${until}`
-  if (!config.location.country) return { items: [...config.local.events] as LocalItem[] }
+  // Your own items first; a built-in free day for the same place and weekdays is left out.
+  const own = config.local.events as LocalItem[]
+  const key = (it: LocalItem) => `${it.place}|${it.weekdays?.join()}`
+  const builtIn = (config.events.freeDays ? FREE_DAYS[config.location.country] ?? [] : []).filter((it) => !own.some((o) => key(o) === key(it)))
+  const curated = [...own, ...builtIn]
+  if (!config.location.country) return { items: curated }
   const [pub, school] = await Promise.all([
     fetch(q('PublicHolidays')).then((r) => (r.ok ? r.json() : [])).catch(() => []) as Promise<any[]>,
     fetch(q('SchoolHolidays')).then((r) => (r.ok ? r.json() : [])).catch(() => []) as Promise<any[]>,
@@ -41,5 +50,5 @@ export async function fetchLocal() {
     seen.add(key)
     return [{ title: `School holidays: ${name(h)}`, note: `Until ${h.endDate}`, icon: '🏫', from: h.startDate, to: h.endDate }]
   })
-  return { items: [...holidays, ...schools, ...config.local.events] as LocalItem[] }
+  return { items: [...holidays, ...schools, ...curated] }
 }

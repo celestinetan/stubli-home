@@ -106,6 +106,11 @@ export const fmtDayLong = (t) => F.dayLong.format(t)
 export const dayKey = (t) => F.ymd.format(t)
 export const isoDay = (t) => F.iso.format(t) // YYYY-MM-DD in the dashboard's time zone
 export const weekdayOf = (t) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(F.wd.format(t))
+// Whether a curated item (free day, market…) is on for a day: a date range, weekdays, or both.
+// `nth: 1` means only the first of those weekdays in the month.
+export const activeOn = (it, iso, wd) =>
+  (!it.from || it.from <= iso) && (!it.to || it.to >= iso) && (!it.weekdays || it.weekdays.includes(wd)) &&
+  (!it.nth || Math.ceil(+iso.slice(8, 10) / 7) === it.nth) && !!(it.from || it.weekdays)
 
 export function ago(t, now = Date.now()) {
   const m = Math.round((now - t) / 60000)

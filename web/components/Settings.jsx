@@ -266,6 +266,13 @@ function EventSettings({ e, save }) {
             <span>Kultur Züri <span class="muted small">· Zürich area</span></span><span class="switch" aria-hidden="true"><span /></span>
           </button>
         </li>
+        {e.freeDaysCount > 0 && (
+          <li>
+            <button class="toggle-row" aria-pressed={!!e.freeDays} onClick={() => save({ freeDays: !e.freeDays })}>
+              <span>Free museum days <span class="muted small">· {e.freeDaysCount} across {e.location?.country ? new Intl.DisplayNames(['en'], { type: 'region' }).of(e.location.country) : 'your country'}</span></span><span class="switch" aria-hidden="true"><span /></span>
+            </button>
+          </li>
+        )}
       </ul>
       {e.kulturZueri && <><h3>From Kultur Züri</h3>
       <ul class="toggle-list">

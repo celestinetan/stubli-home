@@ -24,6 +24,7 @@ export interface Saved {
   hiddenCategories?: string[]
   eventKinds?: Partial<typeof config.events.kinds>
   kulturZueri?: boolean
+  freeDays?: boolean
   tabletMusic?: { name: string; list?: string; video?: string }[]
   hiddenCalendars?: string[]
   localEvents?: typeof config.local.events
@@ -48,6 +49,7 @@ export async function applySettings(env: Env, force = false) {
   if (saved.hiddenCategories) fresh.news.categories = fresh.news.categories.filter((c) => !saved.hiddenCategories!.includes(c.id))
   if (saved.eventKinds) fresh.events.kinds = { ...fresh.events.kinds, ...saved.eventKinds }
   if (saved.kulturZueri != null) fresh.events.kulturZueri = saved.kulturZueri
+  if (saved.freeDays != null) fresh.events.freeDays = saved.freeDays
   if (saved.tabletMusic) fresh.tabletMusic = saved.tabletMusic
   // Things that follow the location: the Local news card's name, the city as a ranking keyword,
   // and no Local card at all until a country is set.
@@ -89,6 +91,7 @@ export async function saveSettings(env: Env, patch: Saved) {
   }
   if (patch.hiddenCategories) next.hiddenCategories = patch.hiddenCategories.map(String).slice(0, 20)
   if (patch.kulturZueri != null) next.kulturZueri = !!patch.kulturZueri
+  if (patch.freeDays != null) next.freeDays = !!patch.freeDays
   if (patch.tabletMusic) {
     next.tabletMusic = (patch.tabletMusic as any[]).slice(0, 24).map((m) => {
       const id = m.url ? youTubeId(String(m.url)) : { list: m.list, video: m.video }

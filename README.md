@@ -12,12 +12,12 @@ the people you care about. It shares Stubli's look: warm paper colours, Moss gre
 
 1. **Weather:** the current conditions with a friendly animated icon, "before you go" advice
    (umbrella, an extra layer), the next 6 hours and 3 days. Rain alerts for the next few hours.
-2. **Your day:** the next event in large type, today's agenda and tomorrow at a glance, from any
+2. **Your day:** the next event in large type, today's agenda and the next 3 days at a glance, from any
    calendar that offers an iCal link (Proton, Google, iCloud, Outlook). Public holidays for your country.
 3. **News:** stories grouped across many outlets, ranked by importance and summarised in plain
    English, in cards by topic. A headline ticker runs along the bottom. Add outlets in any
    language; with a free Google Gemini key they're translated.
-4. **What's on:** your own items, such as free museum days, plus optional event sources.
+4. **What's on:** your own items, regular free museum days (built in for Switzerland so far), plus optional event sources.
 5. **Music on the tablet:** paste YouTube or YouTube Music links (playlists, albums, mixes, songs)
    in Settings, then tap **Play music**. It plays on the tablet or a speaker connected to it. No account or key.
 6. **Sonos and Philips Hue (optional):** now playing, favourites and whole-home moods.

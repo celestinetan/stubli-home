@@ -173,7 +173,7 @@ img { display: block; }
 .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; padding-bottom: 16px; flex: 1; }
 
 .agenda { container-type: inline-size; }
-.agenda-day + .agenda-day, .tomorrow + .agenda-day, .scroll > .agenda-day.local { margin-top: 18px; }
+.agenda-day + .agenda-day, .scroll > .agenda-day.local { margin-top: 18px; }
 .agenda-day h3 { font-size: var(--fs-4); font-weight: 600; margin-bottom: 8px; }
 .agenda-day > p { font-size: var(--fs-3); }
 .event {
@@ -192,7 +192,12 @@ img { display: block; }
 button.local-item:active, .culture-story:active { opacity: 0.6; }
 .culture-story { display: grid; gap: 2px; width: 100%; padding: 6px 0; min-height: 44px; }
 .culture-story .cat-headline { font-size: var(--fs-3); }
-.tomorrow { margin-top: 10px; font-size: var(--fs-3); }
+.outlook ul { display: grid; gap: 10px; }
+.outlook-day { display: grid; grid-template-columns: 7.2rem 1fr; column-gap: 12px; font-size: var(--fs-3); }
+.outlook-label { font-weight: 600; }
+.outlook-events { display: grid; gap: 4px; min-width: 0; }
+.outlook-event { padding-left: 10px; border-left: 3px solid var(--cal, var(--accent)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.outlook-time { color: var(--muted); margin-right: 8px; font-variant-numeric: tabular-nums; }
 .local-icon { font-size: var(--fs-5); line-height: 1.2; flex: none; }
 .local-text { display: grid; gap: 2px; min-width: 0; }
 .local-text .event-loc { grid-column: auto; }

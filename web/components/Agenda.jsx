@@ -1,31 +1,27 @@
-import { fmtTime, fmtDayLong, fmtDay, dayKey, isoDay, weekdayOf } from '../lib.js'
+import { fmtTime, fmtDayLong, fmtDay, dayKey, isoDay, weekdayOf, activeOn } from '../lib.js'
 import { Updated } from './Updated.jsx'
 
 const DAY = 86_400_000
 
-// Your day: next up, today's events, tomorrow in one line, and local holidays.
+// Your day: next up, today's events, the next 3 days at a glance, and local holidays.
 export function Agenda({ now, calendar, local, place = '', extra }) {
   const c = calendar?.data
   const today = isoDay(now)
-  const tomorrow = isoDay(now + DAY)
 
   let yourDay
   if (!c) yourDay = <p class="muted">{calendar?.error ? 'Your calendar didn\'t load. Check the link in Settings, or wait a moment.' : 'Loading calendar…'}</p>
   else if (!c.configured) yourDay = <p class="muted">No calendars yet. Add one in Settings → Calendars &amp; keys: any iCal link from Proton, Google, iCloud or Outlook.</p>
   else {
     const upcoming = c.events.filter((e) => e.end > now)
-    const on = (key) => upcoming.filter((e) => isoDay(e.start) === key || (key === today && e.start < now && isoDay(e.end - 1) >= key))
+    // Events on a day, including all-day and multi-day ones that started earlier.
+    const on = (key) => upcoming.filter((e) => isoDay(e.start) === key || (isoDay(e.start) < key && isoDay(e.end - 1) >= key))
     const next = upcoming.find((e) => !e.allDay && e.start - now < 12 * 3600_000)
     const todays = on(today).filter((e) => e !== next)
-    const tmr = on(tomorrow)
     yourDay = (
       <>
         {next && <NextUp event={next} now={now} />}
         <Day label="Today" events={todays} now={now} empty={next ? 'Nothing else today' : 'Nothing scheduled'} />
-        <p class="tomorrow muted">
-          Tomorrow: {tmr.length === 0 ? 'nothing scheduled'
-            : `${tmr.length} event${tmr.length > 1 ? 's' : ''} · first ${tmr[0].allDay ? tmr[0].title : `${fmtTime(tmr[0].start)} ${tmr[0].title}`}`}
-        </p>
+        <Outlook days={[1, 2, 3].map((d) => ({ d, t: now + d * DAY, events: on(isoDay(now + d * DAY)) }))} />
         {c.calendars.filter((x) => x.error).map((x) => (
           <p class="muted small" key={x.name}>⚠ {x.name} couldn't be loaded</p>
         ))}
@@ -70,6 +66,30 @@ function Day({ label, events, now, empty, showDay }) {
   )
 }
 
+// The next 3 days, one compact row each: up to 3 events, then how many more.
+function Outlook({ days }) {
+  return (
+    <div class="agenda-day outlook">
+      <h3>Next 3 days</h3>
+      <ul>
+        {days.map(({ d, t, events }) => (
+          <li class="outlook-day" key={d}>
+            <span class="outlook-label">{d === 1 ? 'Tomorrow' : fmtDay(t)}</span>
+            <span class="outlook-events">
+              {events.length === 0 ? <span class="muted">Nothing scheduled</span> : events.slice(0, 3).map((e) => (
+                <span class="outlook-event" key={`${e.calendar}${e.start}${e.title}`} style={{ '--cal': e.color }}>
+                  {!e.allDay && <span class="outlook-time">{fmtTime(e.start)}</span>}{e.title}
+                </span>
+              ))}
+              {events.length > 3 && <span class="muted small">+{events.length - 3} more</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 // The one thing that needs you soonest, readable from across the room.
 function NextUp({ event, now }) {
   const mins = Math.round((event.start - now) / 60000)
@@ -91,8 +111,6 @@ function LocalToday({ now, items, place }) {
   const DAY = 86_400_000
   const today = isoDay(now)
   const wd = weekdayOf(now)
-  const activeOn = (it, iso, w) =>
-    (!it.from || it.from <= iso) && (!it.to || it.to >= iso) && (!it.weekdays || it.weekdays.includes(w)) && (it.from || it.weekdays)
   // Free items are listed in What's on instead.
   const todays = items.filter((it) => !it.free && activeOn(it, today, wd)).slice(0, 3)
   const soon = items
