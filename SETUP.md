@@ -10,7 +10,7 @@ for anyone who wants to change or extend the dashboard.
 | Header | Clock; current weather with "before you go" advice; next 6 hours and 3 days | Open-Meteo; in Switzerland MeteoSwiss's model and warnings (unofficial feed) |
 | Your day | Next up, today's events, the next 3 days, holidays, your own items | iCal links you add, OpenHolidays API |
 | News | Top stories and a card per topic; tap for sources and summary | RSS feeds you choose, grouped, ranked and translated by Gemini (optional) |
-| What's on | Your own items, plus optional sources (today, weekend, 7 days); free ones first | Your list; Kultur Züri and Zentralwäscherei (optional, Zürich) |
+| What's on | Your own items, plus optional sources (today, weekend, 7 days); free ones first | Your list; Kultur Züri and Zürich venues (optional) |
 | Ticker | Weather warnings, rain alerts and top headlines | The same news and weather data |
 | Bottom bar | Now playing and whole-home moods (optional) | Sonos Control API, Philips Hue Remote API |
 

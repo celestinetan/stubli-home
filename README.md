@@ -154,8 +154,9 @@ Checked 3 November 2026.
 - News: the public RSS feeds of the outlets listed in Settings. Summaries by
   [Google Gemini](https://ai.google.dev) on its free tier, if you add a key.
 - Optional event sources: [Kultur Züri](https://kulturzueri.ch) (Zürich area; reads its public
-  listing pages, unofficial) and [Zentralwäscherei](https://zentralwaescherei.space/en) (Zürich;
-  concerts and performances from its website's public events list, unofficial).
+  listing pages, unofficial) and Zürich venues you switch on one by one: [Zentralwäscherei](https://zentralwaescherei.space/en),
+  [Kauz](https://www.kauzig.ch/), [Frieda's Büxe](https://friedasbuexe.ch/), [Hive](https://www.hiveclub.ch/)
+  and [Umbo](https://umbo.wtf/), each read from its own website's programme (unofficial).
 - Music on the tablet: YouTube's official embedded player (IFrame API). It loads only when you tap
   Play music, stays visible while playing as YouTube requires, and may show YouTube's ads.
 - Fonts: Figtree and Literata (SIL Open Font Licence), included in the project so nothing loads from elsewhere.
@@ -163,7 +164,7 @@ Checked 3 November 2026.
 ## Known limits
 
 - English only, with British date formats.
-- The unofficial feeds (MeteoSwiss warnings, Kultur Züri, Zentralwäscherei) can stop working if those sites change.
+- The unofficial feeds (MeteoSwiss warnings, Kultur Züri, the venue programmes) can stop working if those sites change.
 - Free plans have limits: news is collected in two halves a few minutes apart, and AI summaries
   run at most every 30 minutes. See [SETUP.md](SETUP.md).
 - A calendar can take a while to show changes, depending on how often your provider updates its shared link.
@@ -200,7 +201,7 @@ harmless and not to bring any claim against the author, including claims by thir
 arising from your use of it.
 
 This is an independent project. It is not affiliated with, endorsed by or sponsored by Cloudflare,
-Google, Sonos, Signify (Philips Hue), MeteoSwiss, Open-Meteo, Kultur Züri, Zentralwäscherei, Proton or any news
+Google, Sonos, Signify (Philips Hue), MeteoSwiss, Open-Meteo, Kultur Züri, the Zürich venues listed above, Proton or any news
 outlet named. All trademarks belong to their owners. You are responsible for following the terms
 of any service you connect, including news outlets' terms for their feeds.
 

@@ -266,11 +266,16 @@ function EventSettings({ e, save }) {
             <span>Kultur Züri <span class="muted small">· Zürich area</span></span><span class="switch" aria-hidden="true"><span /></span>
           </button>
         </li>
-        <li>
-          <button class="toggle-row" aria-pressed={!!e.zentralwaescherei} onClick={() => save({ zentralwaescherei: !e.zentralwaescherei })}>
-            <span>Zentralwäscherei <span class="muted small">· concerts and performances, Zürich</span></span><span class="switch" aria-hidden="true"><span /></span>
-          </button>
-        </li>
+        {(e.venueList ?? []).map((v) => {
+          const on = (e.venues ?? []).includes(v.id)
+          return (
+            <li key={v.id}>
+              <button class="toggle-row" aria-pressed={on} onClick={() => save({ venues: on ? e.venues.filter((x) => x !== v.id) : [...(e.venues ?? []), v.id] })}>
+                <span>{v.name} <span class="muted small">· {v.note}, Zürich</span></span><span class="switch" aria-hidden="true"><span /></span>
+              </button>
+            </li>
+          )
+        })}
         {e.freeDaysCount > 0 && (
           <li>
             <button class="toggle-row" aria-pressed={!!e.freeDays} onClick={() => save({ freeDays: !e.freeDays })}>
@@ -279,7 +284,7 @@ function EventSettings({ e, save }) {
           </li>
         )}
       </ul>
-      {(e.kulturZueri || e.zentralwaescherei) && <><h3>Kinds of events</h3>
+      {(e.kulturZueri || e.venues?.length > 0) && <><h3>Kinds of events</h3>
       <ul class="toggle-list">
         {EVENT_KINDS.map(({ id, label }) => (
           <li key={id}>
@@ -289,7 +294,7 @@ function EventSettings({ e, save }) {
           </li>
         ))}
       </ul>
-      <p class="muted small">Listings refresh every hour. Kultur Züri covers Zürich and nearby towns; Zentralwäscherei adds its concerts (as music) and performances (as art).</p></>}
+      <p class="muted small">Listings refresh every hour. Kultur Züri covers Zürich and nearby towns; each venue adds its own programme (performances count as art, the rest as music).</p></>}
 
       <h3>Your free events</h3>
       <ul class="feed-list">

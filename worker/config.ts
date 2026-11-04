@@ -115,7 +115,7 @@ export default {
     daysAhead: 7,
     // Kultur Züri (kulturzueri.ch): concerts, art tours and exhibitions around Zürich. Off by default.
     kulturZueri: false,
-    zentralwaescherei: false, // concerts and performances at Zentralwäscherei, Zürich
+    venues: [] as string[], // Zürich venues to include, by id (see worker/venues.ts), e.g. ['kauz', 'umbo']
     freeDays: true, // regular free museum days for your country, where Stubli Home knows them (worker/free-days.ts)
     kinds: { music: true, art: true, exhibitions: true },
   },

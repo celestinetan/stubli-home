@@ -1,16 +1,16 @@
 import config from './config'
 import { logError, type Env } from './store'
+import { VENUES, decode } from './venues'
 
 // "What's on": music, art and exhibitions in and around Zürich, from optional sources:
 // - Kultur Züri (kulturzueri.ch) has no public API; this reads the same listing pages its website
 //   loads (unofficial, could change). Only paths its robots.txt allows, and only the first page of
 //   each list: about nine light requests an hour.
-// - Zentralwäscherei (zentralwaescherei.space), a Zürich cultural venue: its website's public
-//   events API, one request an hour. Concerts and performances only.
+// - Venues in Zürich that you switch on, each read from its own website (see venues.ts).
 // Dates and times are kept as local strings ("2026-11-06", "20:00").
 
 export interface EventItem {
-  source: 'Kultur Züri' | 'Zentralwäscherei'
+  source: string // 'Kultur Züri' or a venue's name
   title: string
   venue: string
   city: string
@@ -22,6 +22,7 @@ export interface EventItem {
   teaser?: string
   nearby: boolean // outside the home city
   free?: boolean
+  soldOut?: boolean
 }
 
 const BASE = 'https://kulturzueri.ch'
@@ -34,8 +35,9 @@ const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,
 const isHome = (city: string) => !!city && fold(city).includes(fold(config.location.name))
 
 export async function fetchEvents(env: Env) {
-  const kz = config.events.kulturZueri, zw = config.events.zentralwaescherei
-  if (!kz && !zw) return { events: [], sources: [] }
+  const kz = config.events.kulturZueri
+  const venues = VENUES.filter((v) => config.events.venues.includes(v.id))
+  if (!kz && !venues.length) return { events: [], sources: [] }
   const kinds = config.events.kinds
   const days = Array.from({ length: config.events.daysAhead }, (_, i) => localDate(new Date(Date.now() + i * 86400_000)))
   const last = days[days.length - 1]
@@ -44,7 +46,7 @@ export async function fetchEvents(env: Env) {
   if (kz && kinds.music) days.forEach((d) => jobs.push({ source: 'Kultur Züri', name: `Music ${d}`, run: list('/veranstaltungen/', `what=${MUSIC}&when=${d}`, 'Music').then((x) => x.filter((e) => e.date === d)) }))
   if (kz && kinds.art) jobs.push({ source: 'Kultur Züri', name: 'Art', run: list('/veranstaltungen/', `what=${ART_TOURS}&when=${days[0]}`, 'Art').then((x) => x.filter((e) => e.date <= last)) })
   if (kz && kinds.exhibitions) jobs.push({ source: 'Kultur Züri', name: 'Exhibitions', run: list('/ausstellungen/', '', 'Exhibition') })
-  if (zw) jobs.push({ source: 'Zentralwäscherei', name: 'events', run: zentralwaescherei().then((x) => x.filter((e) => e.date <= last && (e.kind === 'Music' ? kinds.music : kinds.art))) })
+  for (const v of venues) jobs.push({ source: v.name, name: 'programme', run: v.read().then((x) => x.filter((e) => e.date >= days[0] && e.date <= last && (e.kind === 'Music' ? kinds.music : kinds.art))) })
 
   const results = await Promise.allSettled(jobs.map((j) => j.run))
   const events: EventItem[] = []
@@ -72,31 +74,6 @@ export async function fetchEvents(env: Env) {
   return { events: unique, sources }
 }
 
-// Zentralwäscherei's own events API (the one its website uses). Their types: Concert, Performance,
-// Party, Drag, Panel, Community Event; only concerts and performances count here (plus untyped
-// events with "concert" or "live in" in the title). The price is a suggested one; 0 means free.
-async function zentralwaescherei(): Promise<EventItem[]> {
-  const q = new URLSearchParams({ 'filters[end_datetime][$gt]': new Date().toISOString(), 'pagination[pageSize]': '100', locale: 'en', sort: 'start_datetime:asc', 'populate[0]': 'eventtype_rels' })
-  const res = await fetch(`https://cms.zentralwaescherei.space/api/events?${q}`, { headers: { 'User-Agent': 'Mozilla/5.0 (wall dashboard)' } })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const { data } = await res.json() as { data: any[] }
-  const time = new Intl.DateTimeFormat('en-GB', { timeZone: config.timezone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-  return (data ?? []).flatMap((e): EventItem[] => {
-    const types: string[] = (e.eventtype_rels ?? []).map((t: any) => t.name)
-    const kind = types.includes('Concert') || (!types.length && /concert|live in/i.test(e.title)) ? 'Music'
-      : types.includes('Performance') ? 'Art' : null
-    if (!kind || !e.start_datetime) return []
-    const start = new Date(e.start_datetime)
-    // Today's events that already started still show; they run into the evening.
-    const date = localDate(start) < localDate(new Date()) ? localDate(new Date()) : localDate(start)
-    const teaser = String(e.description ?? '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[*_#>]/g, '').split(/\n\s*\n/)[0].trim().slice(0, 240)
-    return [{
-      source: 'Zentralwäscherei', title: e.title, venue: 'Zentralwäscherei', city: 'Zürich', date, time: time.format(start), kind,
-      url: `https://zentralwaescherei.space/en/event/${e.documentId}`, teaser, nearby: !isHome('Zürich'), free: e.price === 0,
-    }]
-  })
-}
-
 async function list(path: string, query: string, kind: EventItem['kind']): Promise<EventItem[]> {
   // The site returns just the list when asked the way its own script asks (POST + X-Requested-With).
   const res = await fetch(`${BASE}${path}${query ? `?${query}` : ''}`, {
@@ -108,11 +85,6 @@ async function list(path: string, query: string, kind: EventItem['kind']): Promi
   return html.split('class="cp-teaser-box-item-kz"').slice(1).map((it) => parseItem(it, kind)).filter((e): e is EventItem => !!e)
 }
 
-const decode = (s: string) => s
-  .replace(/<[^>]+>/g, '')
-  .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))
-  .replace(/&quot;/g, '"').replace(/&#039;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
-  .replace(/\s+/g, ' ').trim()
 const pick = (s: string, re: RegExp) => decode(re.exec(s)?.[1] ?? '')
 
 function parseItem(it: string, kind: EventItem['kind']): EventItem | null {
