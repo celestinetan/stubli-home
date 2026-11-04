@@ -902,10 +902,21 @@ button[disabled] { opacity: 0.4; }
 .volume.big .vol-step { width: 52px; height: 52px; }
 @container (max-width: 860px) { .bar .volume .vol-mute { display: none; } }
 
-/* Dancing stick figures on the bar while music plays (see Dancers.jsx). */
-.dancers { display: inline-flex; align-items: flex-end; gap: 2px; height: 40px; flex: none; padding: 0 2px; }
-.dancer { width: 22px; height: 38px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.dancer circle { fill: currentColor; stroke: none; }
-.dancer g, .dancer-body { transition: transform 0.36s cubic-bezier(0.34, 1.4, 0.64, 1); }
-.dancers.n2 .dancer:nth-child(2), .dancers.n3 .dancer:nth-child(3) { width: 19px; height: 33px; } /* friends stand a step back */
-@media (prefers-reduced-motion: reduce) { .dancer g, .dancer-body { transition: none; } }
+/* Dancing stick figures on the bar while music plays (see Dancers.jsx): outline figures, all
+   the same size, with music notes rising and fading behind them. */
+.dancers { position: relative; display: inline-flex; align-items: flex-end; gap: 0; height: 44px; flex: none; padding: 0 4px; }
+.dancer { position: relative; z-index: 1; width: 24px; height: 44px; overflow: visible; fill: none; stroke: var(--ink); stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.dancer rect, .dancer circle { fill: var(--surface); }
+.notes { position: absolute; inset: -10px 0 0; pointer-events: none; }
+.note { position: absolute; width: 11px; height: 14px; fill: var(--muted); opacity: 0; animation: note-rise 3.2s ease-out infinite; }
+.note.n0 { left: 10%; bottom: 30%; animation-delay: 0s; }
+.note.n1 { left: 55%; bottom: 40%; animation-delay: 0.8s; width: 13px; }
+.note.n2 { left: 80%; bottom: 25%; animation-delay: 1.6s; }
+.note.n3 { left: 30%; bottom: 45%; animation-delay: 2.4s; width: 12px; }
+@keyframes note-rise {
+  0% { opacity: 0; transform: translate(0, 6px) rotate(-8deg) scale(0.8); }
+  20% { opacity: 0.75; }
+  70% { opacity: 0.45; }
+  100% { opacity: 0; transform: translate(6px, -26px) rotate(10deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .notes { display: none; } }
