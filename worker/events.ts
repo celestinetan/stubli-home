@@ -1,6 +1,6 @@
 import config from './config'
 import { logError, type Env } from './store'
-import { VENUES, decode, inReach } from './venues'
+import { venuesNear, decode, near, KULTUR_ZUERI_AREA } from './venues'
 
 // "What's on": music, art and exhibitions in and around Zürich, from optional sources:
 // - Kultur Züri (kulturzueri.ch) has no public API; this reads the same listing pages its website
@@ -35,8 +35,8 @@ const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,
 const isHome = (city: string) => !!city && fold(city).includes(fold(config.location.name))
 
 export async function fetchEvents(env: Env) {
-  const kz = config.events.kulturZueri
-  const venues = inReach() ? VENUES.filter((v) => config.events.venues.includes(v.id)) : []
+  const kz = config.events.kulturZueri && near(KULTUR_ZUERI_AREA)
+  const venues = venuesNear().filter((v) => config.events.venues.includes(v.id))
   if (!kz && !venues.length) return { events: [], sources: [] }
   const kinds = config.events.kinds
   const days = Array.from({ length: config.events.daysAhead }, (_, i) => localDate(new Date(Date.now() + i * 86400_000)))

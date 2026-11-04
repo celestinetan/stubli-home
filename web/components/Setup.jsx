@@ -3,16 +3,18 @@ import { api, store } from '../lib.js'
 import { CitySearch } from './Settings.jsx'
 import { Wordmark } from './Wordmark.jsx'
 
-// First-run setup: shown on a new dashboard until a city is chosen. Four short steps, one question
+// First-run setup: shown on a new dashboard until a city is chosen. Five short steps, one question
 // each; everything after the city can be skipped and changed later in Settings.
 
-const STEPS = ['Your city', 'Your calendar', 'News summaries', 'Ready']
+const STEPS = ['Your city', 'Your calendar', 'News summaries', 'Music', 'Ready']
+const PROJECT = 'https://github.com/celestinetan/stubli-home'
 
 export function Setup({ onDone, onSaved }) {
   const [step, setStep] = useState(0)
   const [note, setNote] = useState('')
   const [cal, setCal] = useState({ name: 'Personal', url: '' })
   const [key, setKey] = useState('')
+  const [music, setMusic] = useState({ name: '', url: '' })
   const [skipped, setSkipped] = useState([])
   const next = () => { setNote(''); setStep((s) => s + 1) }
   const skip = () => { setSkipped((x) => [...x, step]); next() }
@@ -73,6 +75,29 @@ export function Setup({ onDone, onSaved }) {
         </>}
 
         {step === 3 && <>
+          <h2>Music on the wall</h2>
+          <p class="muted">Optional. Two ways, and you can use both:</p>
+          <div class="setup-choice">
+            <h3>YouTube Music on this tablet</h3>
+            <p class="small">Paste a link to a playlist, album, mix or song from YouTube Music (or YouTube). It plays here, or on a speaker the tablet is connected to by Bluetooth or AirPlay. No account or key needed.</p>
+            <div class="add-feed">
+              <input placeholder="Link, e.g. music.youtube.com/playlist?list=…" inputMode="url" autoCapitalize="off" value={music.url} onInput={(ev) => setMusic({ ...music, url: ev.currentTarget.value })} />
+              <input placeholder="Name, e.g. Sunday jazz" value={music.name} onInput={(ev) => setMusic({ ...music, name: ev.currentTarget.value })} />
+            </div>
+            <p class="muted small">In YouTube Music: open a playlist, tap Share, then Copy link.</p>
+          </div>
+          <div class="setup-choice">
+            <h3>Sonos speakers</h3>
+            <p class="small">Control your Sonos speakers from the wall: what's playing, favourites, volume. It needs a free Sonos developer key, added once in Cloudflare. <a href={`${PROJECT}#sonos-and-philips-hue`} target="_blank" rel="noopener">How to set up Sonos ›</a></p>
+          </div>
+          <div class="setup-actions">
+            <button class="btn" onClick={skip}>Skip for now</button>
+            <button class="btn primary" disabled={busy || !/youtu/i.test(music.url)}
+              onClick={async () => { if (await post('/api/settings', { tabletMusic: [{ name: music.name.trim() || 'Music', url: music.url.trim() }] })) next() }}>{busy ? 'Checking the link…' : 'Add music'}</button>
+          </div>
+        </>}
+
+        {step === 4 && <>
           <h2>Your Stubli Home is ready</h2>
           <p class="muted">A few things make a tablet a calm wall display:</p>
           <ul class="setup-tips">

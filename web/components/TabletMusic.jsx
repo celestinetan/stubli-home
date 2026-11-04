@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { createPortal } from 'preact/compat'
 import { Pause, Play, Next, Close, Music } from './icons.jsx'
+import { Dancers } from './Dancers.jsx'
 
 // Music on this tablet: YouTube or YouTube Music links play here, through YouTube's own embedded
 // player (its official IFrame API: no account or key). YouTube's rules say the player must stay
@@ -80,12 +81,13 @@ export function TabletMusicBar({ music, links }) {
     <div class="np tablet-np">
       {music.item ? (
         <>
-          <span class="np-text"><span class="np-title">{music.title || music.item.name}</span><span class="np-room">On this tablet</span></span>
+          <Dancers on={music.playing} />
+          <span class="np-text"><span class="np-title">{music.title || music.item.name}</span><span class="np-room">{music.playing ? '' : 'Paused · '}YouTube Music · on this tablet</span></span>
           <button class="icon-btn big" aria-label={music.playing ? 'Pause' : 'Play'} onClick={music.toggle}>{music.playing ? <Pause /> : <Play />}</button>
           <button class="icon-btn" aria-label="Choose something else" onClick={() => setOpen(true)}><Music size={20} /></button>
         </>
       ) : (
-        <button class="btn" onClick={() => setOpen(true)}><Music size={20} /> Play music</button>
+        <button class="btn" onClick={() => setOpen(true)}><Music size={20} /> Play YouTube Music</button>
       )}
       {/* Drawn at page level, so it sits above the ticker and every panel. */}
       {open && createPortal(

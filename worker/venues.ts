@@ -4,12 +4,14 @@ import { distanceKm } from './local'
 
 // Optional venues for "What's on": each reads the venue's own public programme, one light request
 // an hour, only where its robots.txt allows. None of these is an official feed, so a redesign of a
-// venue's website can break one (it then shows as missing, and the others carry on). All in Zürich.
-// Turn them on in Settings → What's on. To add a venue: give it an id, a name and a reader here.
+// venue's website can break one (it then shows as missing, and the others carry on).
+// A venue only appears in Settings for dashboards within config.events.radiusKm of it, so every
+// city's venues can live in this one list. Turn them on in Settings → What's on.
+// To add a venue for your city: give it an id, a name, its city and coordinates, and a reader
+// that returns its events (see the examples below), then open a pull request.
 
 const UA = { 'User-Agent': 'Mozilla/5.0 (wall dashboard)' }
-const CITY = 'Zürich'
-const AT = { lat: 47.3769, lon: 8.5417 } // all these venues are in Zürich
+const ZURICH = { city: 'Zürich', lat: 47.3769, lon: 8.5417 }
 
 export const decode = (s: string) => s
   .replace(/<\/?br\s*\/?>/gi, ' ')
@@ -20,7 +22,7 @@ export const decode = (s: string) => s
 
 const localDate = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: config.timezone }).format(d)
 const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ue/g, 'u')
-const nearby = () => !fold(config.location.name || '').includes(fold(CITY))
+const nearby = (city: string) => !fold(config.location.name || '').includes(fold(city))
 const MONTHS = ['januar', 'februar', 'marz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember']
 const pad = (n: number | string) => String(n).padStart(2, '0')
 
@@ -30,22 +32,29 @@ async function get(url: string) {
   return res
 }
 
-const item = (venue: string, e: Omit<EventItem, 'source' | 'venue' | 'city' | 'nearby'>): EventItem =>
-  ({ source: venue, venue, city: CITY, nearby: nearby(), ...e })
-
-// Venues further than config.events.radiusKm from your city are skipped (see events.ts).
-export const inReach = () => {
-  const { latitude, longitude } = config.location
-  return latitude == null || longitude == null || distanceKm(latitude, longitude, AT.lat, AT.lon) <= config.events.radiusKm
+const item = (venue: string, e: Omit<EventItem, 'source' | 'venue' | 'city' | 'nearby'>): EventItem => {
+  const city = VENUES.find((v) => v.name === venue)?.city ?? ''
+  return { source: venue, venue, city, nearby: nearby(city), ...e }
 }
 
-export const VENUES: { id: string; name: string; note: string; read: () => Promise<EventItem[]> }[] = [
-  { id: 'zentralwaescherei', name: 'Zentralwäscherei', note: 'concerts and performances', read: zentralwaescherei },
-  { id: 'kauz', name: 'Kauz', note: 'concerts, jazz and club nights', read: kauz },
-  { id: 'friedasbuexe', name: "Frieda's Büxe", note: 'club nights', read: friedasBuexe },
-  { id: 'hive', name: 'Hive', note: 'club nights', read: hive },
-  { id: 'umbo', name: 'Umbo', note: 'experimental music and club nights', read: umbo },
+// Whether a place is within config.events.radiusKm of the dashboard's city.
+export const near = (p: { lat: number; lon: number }) => {
+  const { latitude, longitude } = config.location
+  return latitude != null && longitude != null && distanceKm(latitude, longitude, p.lat, p.lon) <= config.events.radiusKm
+}
+// Kultur Züri covers Zürich and the towns around it.
+export const KULTUR_ZUERI_AREA = ZURICH
+
+type Venue = { id: string; name: string; note: string; city: string; lat: number; lon: number; read: () => Promise<EventItem[]> }
+export const VENUES: Venue[] = [
+  { id: 'zentralwaescherei', name: 'Zentralwäscherei', note: 'concerts and performances', ...ZURICH, read: zentralwaescherei },
+  { id: 'kauz', name: 'Kauz', note: 'concerts, jazz and club nights', ...ZURICH, read: kauz },
+  { id: 'friedasbuexe', name: "Frieda's Büxe", note: 'club nights', ...ZURICH, read: friedasBuexe },
+  { id: 'hive', name: 'Hive', note: 'club nights', ...ZURICH, read: hive },
+  { id: 'umbo', name: 'Umbo', note: 'experimental music and club nights', ...ZURICH, read: umbo },
 ]
+// The venues within reach of this dashboard.
+export const venuesNear = () => VENUES.filter(near)
 
 // Zentralwäscherei's own events API (the one its website uses). Their types: Concert, Performance,
 // Party, Drag, Panel, Community Event; only concerts and performances count here (plus untyped

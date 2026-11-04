@@ -920,3 +920,7 @@ button[disabled] { opacity: 0.4; }
   100% { opacity: 0; transform: translate(6px, -26px) rotate(10deg) scale(1); }
 }
 @media (prefers-reduced-motion: reduce) { .notes { display: none; } }
+
+.setup-choice { display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; background: var(--surface-2); margin-top: 10px; }
+.setup-choice h3 { margin: 0; font-size: var(--fs-3); color: var(--ink); }
+.setup-choice a { color: var(--accent); font-weight: 600; }

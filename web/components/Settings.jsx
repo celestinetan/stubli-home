@@ -277,18 +277,23 @@ function EventSettings({ e, save }) {
   return (
     <>
       <h3>Event sources</h3>
+      {!e.kulturZueriNear && !(e.venueList ?? []).length && !(e.freeDaysCount > 0) && (
+        <p class="muted small">No event sources near {e.location?.name || 'your city'} yet. Add your own free days and events below. To add your city's venues or free museum days for everyone, see "Make it yours" in the README.</p>
+      )}
       <ul class="toggle-list">
-        <li>
-          <button class="toggle-row" aria-pressed={!!e.kulturZueri} onClick={() => save({ kulturZueri: !e.kulturZueri })}>
-            <span>Kultur Züri <span class="muted small">· Zürich area</span></span><span class="switch" aria-hidden="true"><span /></span>
-          </button>
-        </li>
+        {e.kulturZueriNear && (
+          <li>
+            <button class="toggle-row" aria-pressed={!!e.kulturZueri} onClick={() => save({ kulturZueri: !e.kulturZueri })}>
+              <span>Kultur Züri <span class="muted small">· Zürich area</span></span><span class="switch" aria-hidden="true"><span /></span>
+            </button>
+          </li>
+        )}
         {(e.venueList ?? []).map((v) => {
           const on = (e.venues ?? []).includes(v.id)
           return (
             <li key={v.id}>
               <button class="toggle-row" aria-pressed={on} onClick={() => save({ venues: on ? e.venues.filter((x) => x !== v.id) : [...(e.venues ?? []), v.id] })}>
-                <span>{v.name} <span class="muted small">· {v.note}, Zürich</span></span><span class="switch" aria-hidden="true"><span /></span>
+                <span>{v.name} <span class="muted small">· {v.note}, {v.city}</span></span><span class="switch" aria-hidden="true"><span /></span>
               </button>
             </li>
           )

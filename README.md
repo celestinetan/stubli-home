@@ -18,9 +18,13 @@ the people you care about. It shares Stubli's look: warm paper colours, Moss gre
    English, in cards by topic. A headline ticker runs along the bottom. Add outlets in any
    language; with a free Google Gemini key they're translated.
 4. **What's on:** your own items, regular free museum days (built in for Switzerland so far), plus optional event sources.
-5. **Music on the tablet:** paste YouTube or YouTube Music links (playlists, albums, mixes, songs)
-   in Settings, then tap **Play music**. It plays on the tablet or a speaker connected to it. No account or key.
-6. **Sonos and Philips Hue (optional):** now playing, recently played and favourites, and whole-home moods with your Hue colour scenes.
+5. **Music, two ways (use either or both):**
+   - **YouTube Music on the tablet:** paste links to playlists, albums, mixes or songs, then tap
+     **Play YouTube Music**. It plays on the tablet or a speaker connected to it by Bluetooth or
+     AirPlay. No account or key.
+   - **Sonos speakers:** what's playing, full controls on the bottom bar (shuffle, previous, play,
+     next, mute, volume), favourites and recently played. Needs a free Sonos developer key.
+6. **Philips Hue (optional):** whole-home moods, including your own Hue colour scenes, and each room.
 7. **Settings on the tablet:** city, layout, news sources, calendars and keys can all be changed
    from the dashboard itself. No code needed.
 
@@ -66,7 +70,7 @@ add `?demo` to the address to see the same.)
 3. Write the code down somewhere safe. You'll need it for every tablet or phone, and again on an
    iPad after adding Stubli Home to the home screen (that icon keeps its own sign-in).
 
-### 3. Answer four quick questions
+### 3. Answer five quick questions
 
 After pairing, Stubli Home asks:
 
@@ -77,7 +81,9 @@ After pairing, Stubli Home asks:
    - iCloud and Outlook offer a shared calendar link too.
 3. **News summaries (optional):** a free [Google AI Studio](https://aistudio.google.com) key groups,
    summarises and translates stories. The news works without it, just plainer.
-4. **Ready:** tips for the wall, below.
+4. **Music (optional):** paste a YouTube Music link to play on the tablet. Sonos is set up later
+   (see Optional extras).
+5. **Ready:** tips for the wall, below.
 
 Everything can be changed later with the gear in the top right corner: more calendars, news
 outlets from your own country (pick your country's category), your own free days and events in
@@ -113,6 +119,21 @@ Tip: a smart plug that charges the tablet only a few hours a day helps an old ba
   | Hue | [developers.meethue.com](https://developers.meethue.com), new Remote Hue API app | `https://YOUR-ADDRESS/auth/hue/callback` | `HUE_CLIENT_ID`, `HUE_CLIENT_SECRET` |
 
   Add the secrets in Cloudflare, switch on Music and Lights under Layout, then tap **Connect Sonos** or **Connect Hue**.
+
+## Make it yours
+
+Stubli Home is built from parts you can switch on and off, so it fits any home and any city.
+
+- **Parts:** Settings → Layout turns weather, Your day, News, What's on, Sonos, Hue and tablet
+  music on or off, and sets the order of the columns. Parts you don't use take no space.
+- **Your city:** weather, time zone, holidays and the local news card follow the city you choose.
+  Sources that only make sense nearby (free museum days, venues, Kultur Züri) show up only within
+  100 km of them.
+- **Your own items:** add free days, markets and events in Settings → What's on, and news outlets
+  in any language in Settings → News.
+- **Add your city for everyone:** free museum days live in [`worker/free-days.ts`](worker/free-days.ts)
+  (one list per country) and venues in [`worker/venues.ts`](worker/venues.ts) (each with its city
+  and coordinates). Add yours and open a pull request: every Stubli Home near you gets them.
 
 ### Getting updates
 

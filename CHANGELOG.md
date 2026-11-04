@@ -2,6 +2,8 @@
 
 ## 1.1 – 4 November 2026
 
+- Music, two ways: YouTube Music on the tablet is now a step in setup and has its own place on the bar (with the dancers), next to Sonos.
+- Easier to fit any city: venues carry their own location, and nearby-only sources (free days, venues, Kultur Züri) appear only within 100 km. "Make it yours" in the README explains how to add your city.
 - Your day redesigned as one timeline: a green Now mark, events as blocks in their calendar's colour (the next one larger), free time shown as space, all-day items as pills, and tomorrow below in the same detail (time, end, length, place).
 - Full music controls on the bottom bar: shuffle, previous, play, next, mute and volume as − and + in ten steps.
 - Type for the wall: Figtree throughout the dashboard (Literata only in the story panel and the Paper look), a sturdier clock and temperature, and darker secondary text.
