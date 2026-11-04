@@ -7,10 +7,15 @@ import { Play, Pause, Next, Prev, Close, Bulb, Power, Music, Shuffle, Speaker, S
 
 function usePoll(path, everyMs) {
   const [state, setState] = useState(null)
+  // A slower pace while the service is limiting requests (it says so with `limited`).
+  if (state?.limited) everyMs = Math.max(everyMs, 5 * 60_000)
   const timer = useRef()
   const load = useCallback(async () => {
     try { setState(await api(path)) }
-    catch (e) { if (e.status !== 409) report(`${path}: ${e.message}`); setState((s) => s ?? { error: e.message }) }
+    catch (e) {
+      if (e.status !== 409 && e.status !== 429) report(`${path}: ${e.message}`)
+      setState((s) => (e.status === 429 ? { ...(s ?? { error: e.message }), limited: true } : s ?? { error: e.message }))
+    }
   }, [path])
   useEffect(() => {
     load()
@@ -21,7 +26,11 @@ function usePoll(path, everyMs) {
 }
 
 export function useHome(sheetOpen) {
-  const [sonos, reloadSonos, setSonos] = usePoll('/api/sonos', sheetOpen ? 5000 : 15000)
+  // Every Sonos update costs requests against its daily limit, so it checks often only while
+  // music plays or the music panel is open.
+  const [anyPlaying, setAnyPlaying] = useState(false)
+  const [sonos, reloadSonos, setSonos] = usePoll('/api/sonos', sheetOpen ? 5000 : anyPlaying ? 15000 : 60000)
+  useEffect(() => setAnyPlaying(!!sonos?.groups?.some(playing)), [sonos])
   const [hue, reloadHue, setHue] = usePoll('/api/hue', sheetOpen ? 10000 : 30000)
   const [groupId, setGroupId] = useState(() => store.get('sonosGroup', null))
   const groups = sonos?.groups ?? []
@@ -323,6 +332,7 @@ export function LightsSheet({ home, onClose, closing }) {
 function Connect({ svc, state }) {
   const name = svc === 'hue' ? 'Philips Hue' : 'Sonos'
   if (!state) return <p class="muted">Loading…</p>
+  if (state.limited) return <p class="muted">{name} has paused updates for a while after many requests today. It comes back by itself.</p>
   if (state.error) return <p class="muted">{name} is unreachable right now.</p>
   if (!state.configured) return <p class="muted">{name} isn't set up yet (see SETUP.md).</p>
   return <a class="btn" href={`/auth/${svc}/start`}>Connect {name}</a>

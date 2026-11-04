@@ -9,7 +9,7 @@ import { fetchEvents } from './events'
 import { fetchNews, collectNewsBatch, parseFeed } from './news'
 import { venuesNear, near, KULTUR_ZUERI_AREA } from './venues'
 import { startUrl, finish, type Provider } from './oauth'
-import { sonosProvider, sonosState, sonosAction } from './sonos'
+import { sonosProvider, sonosState, sonosAction, QUOTA } from './sonos'
 import { hueProvider, hueState, hueAction, hueRegisterApp } from './hue'
 import { applySettings, readSaved, saveSettings, resetSettings, canEdit, DEFAULTS, type Saved } from './settings'
 
@@ -292,6 +292,7 @@ app.get('/health', async (c) => {
 
 const fail = (c: any, e: unknown) => {
   const msg = e instanceof Error ? e.message : String(e)
+  if (msg === QUOTA) return c.json({ error: msg, limited: true }, 429)
   return c.json({ error: msg }, msg === 'not_connected' ? 409 : 502)
 }
 
