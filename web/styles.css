@@ -782,7 +782,12 @@ button[disabled] { opacity: 0.4; }
 :root[data-theme='night'] { --dim-night: 0.82; }
 /* Idle: the whole dashboard dims after a while without a touch (Settings → General). */
 :root[data-idle] { --dim-idle: 0.55; }
-:root[data-theme='night'] .app, :root[data-idle] .app { filter: brightness(calc(var(--dim-night, 1) * var(--dim-idle, 1))); transition: filter 1.2s ease, transform 2s ease; }
+/* One dark layer over everything, background included, so the whole screen dims evenly. It
+   reaches past the edges to cover the hourly pixel shift, and lets every tap through. */
+.app::after {
+  content: ''; position: absolute; inset: -40px; z-index: 9999; pointer-events: none;
+  background: #000; opacity: calc(1 - var(--dim-night, 1) * var(--dim-idle, 1)); transition: opacity 1.2s ease;
+}
 
 /* Portrait (iPad upright): Your day and News side by side, What's on across the bottom. */
 @container (max-width: 860px) {
