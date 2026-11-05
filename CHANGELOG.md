@@ -2,6 +2,7 @@
 
 ## 1.1 – 4 November 2026
 
+- The temperature line under the hourly forecast is gone; the hours and their temperatures say it already.
 - Your day sticks to your calendar and holidays: no rain line, and museum or market items stay in What's on.
 - News and What's on use text one step smaller, so more fits.
 - Dimming (when idle, and at night) now covers the whole screen evenly, background included, instead of only the panels.

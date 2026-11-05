@@ -751,13 +751,10 @@ button.now-icon:active { transform: scale(0.94); }
   padding: 3px 10px; border-radius: 999px; pointer-events: none;
 }
 
-/* Weather: one-line tips; the curve sits under the hours. */
+/* Weather: one-line tips. */
 .now-advice { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-2); }
 .strip .chip { white-space: nowrap; }
-.fc-curve { grid-column: 1 / -1; grid-row: 2; width: 100%; height: 34px; display: block; margin-top: -4px; }
-.fc-day { grid-row: 3; }
-.fc-curve-line { fill: none; stroke: var(--accent); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
-.fc-curve-rain { fill: var(--rain); opacity: 0.45; }
+.fc-day { grid-row: 2; }
 
 /* Bottom bar: now playing gets the room; lights are one control. */
 .lights-ctl { display: flex; align-items: center; gap: 6px; }
