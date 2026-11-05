@@ -56,6 +56,14 @@ export function Agenda({ now, calendar, local, place = '', extra }) {
   )
 }
 
+// Free time, rounded so it reads at a glance and doesn't tick every minute: to the quarter hour
+// under three hours, to the hour beyond.
+const roughly = (ms) => {
+  const m = ms / MIN
+  const r = m < 180 ? Math.floor(m / 15) * 15 : Math.floor(m / 60) * 60
+  return r < 60 ? `${r} min` : r % 60 === 0 ? `${r / 60} h` : `${Math.floor(r / 60)} h ${r % 60}`
+}
+
 const hm = (ms) => {
   const m = Math.round(ms / MIN)
   return m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)} h ${m % 60} min`
@@ -87,7 +95,7 @@ function Timeline({ now, events }) {
         <li class="tl-row tl-free" key={r.key}>
           <span class="tl-time" />
           <span class="tl-rail" />
-          <span class="tl-free-label">Free for {hm(r.to - r.from)}</span>
+          <span class="tl-free-label">Free for {roughly(r.to - r.from)}</span>
         </li>
       ) : <EventRow key={r.key} e={r.e} now={now} first={r.first} />)}
       {freeEvening && (

@@ -92,7 +92,7 @@ export function WhatsOn({ now, events, local, place = '', onOpen, eventSources =
                     <span class="event-when">{e.time || 'All day'}</span>
                     <span class="event-body">
                       <span class="event-name"><ItemIcon kind={e.kind} emoji={e.icon} /> {e.title}</span>
-                      <span class="event-where muted">{[e.venue, e.city !== place && e.city].filter(Boolean).join(' · ')}{e.soldOut ? ' · Sold out' : ''}</span>
+                      <span class="event-where muted">{e.free && <span class="free-tag">Free</span>}{[e.venue, e.city !== place && e.city].filter(Boolean).join(' · ')}{e.soldOut ? ' · Sold out' : ''}</span>
                     </span>
                   </button>
                 </li>

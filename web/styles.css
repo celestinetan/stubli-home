@@ -175,7 +175,8 @@ img { display: block; }
   color: var(--muted); margin-bottom: 10px;
 }
 .panel > h2 .updated { text-transform: none; letter-spacing: 0; }
-.scroll.more { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); }
+/* The last 32px are fully faded, so the "More below" hint never sits on top of text. */
+.scroll.more { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 76px), transparent calc(100% - 32px)); mask-image: linear-gradient(to bottom, #000 calc(100% - 76px), transparent calc(100% - 32px)); }
 .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; padding-bottom: 16px; flex: 1; }
 
 .agenda { container-type: inline-size; }
@@ -474,7 +475,7 @@ input[type='range']::-webkit-slider-thumb {
 .hint { margin-top: 12px; }
 
 /* ---------- header v3: one band, three zones, shared baseline ---------- */
-.header { grid-template-columns: auto minmax(0, 0.9fr) minmax(0, 1.25fr); align-items: stretch; gap: 0; padding-right: 40px; }
+.header { grid-template-columns: auto minmax(0, 1.15fr) minmax(0, 1.05fr); align-items: stretch; gap: 0; padding-right: 40px; }
 .header > * { padding: 2px 24px; }
 .header > .clock { padding-left: 0; display: flex; flex-direction: column; justify-content: center; }
 .header > .now { border-left: 1px solid var(--line); max-width: none; display: flex; flex-direction: column; justify-content: center; gap: 6px; align-items: flex-start; }
@@ -488,8 +489,10 @@ input[type='range']::-webkit-slider-thumb {
 .now-label { font-size: var(--fs-4); font-weight: 500; }
 .now-hl { font-size: var(--fs-2); color: var(--muted); font-variant-numeric: tabular-nums; }
 .now-advice { font-size: var(--fs-2); font-weight: 500; line-height: 1.3; padding: 5px 10px; border-radius: 10px; background: var(--surface-2); max-width: 100%; }
+.tip-icon { display: inline-flex; vertical-align: -3px; color: var(--muted); }
+.now-advice.warn .tip-icon { color: inherit; }
 .now-advice.warn { background: var(--warn-bg); color: var(--warn-ink); font-weight: 600; }
-.now-facts { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: var(--fs-1); color: var(--muted); font-variant-numeric: tabular-nums; }
+.now-facts { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: var(--fs-2); color: var(--muted); font-variant-numeric: tabular-nums; }
 .forecast { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: auto auto; row-gap: 8px; align-content: center; }
 .fc-hour, .fc-day { display: grid; justify-items: center; gap: 2px; }
 .fc-hour + .fc-hour { border-left: 1px solid var(--line); }
@@ -507,7 +510,9 @@ input[type='range']::-webkit-slider-thumb {
 }
 
 /* Free events stand out with a sage green outline and tint. */
-.event-item.free { border: 1.5px solid var(--accent); border-radius: 12px; background: var(--free-bg); padding-left: 8px; margin: 4px 0; }
+.event-item.free { border-radius: 12px; background: var(--free-bg); padding-left: 8px; margin: 4px 0; }
+/* A small word says it's free; the soft tint groups it, without a border. */
+.free-tag { color: var(--accent); font-weight: 650; margin-right: 6px; }
 :root { --free-bg: #eef2ea; }
 :root[data-theme='night'] { --free-bg: #252a20; }
 .event-when { font-size: var(--fs-2); }
@@ -714,7 +719,7 @@ button.now-icon:active { transform: scale(0.94); }
 .np-controls .shuffle.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .np-volume { display: flex; align-items: center; gap: 10px; color: var(--muted); }
 .np-volume .slider { flex: 1; }
-.up-next { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); margin-top: auto; }
+.up-next { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); margin-top: 18px; } /* right under the controls */
 .up-next-label { font-size: var(--fs-1); color: var(--muted); font-weight: 600; }
 .up-next-title { font-size: var(--fs-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .picks { display: grid; gap: 2px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; align-content: start; flex: 1; min-height: 0; }
@@ -746,7 +751,7 @@ button.now-icon:active { transform: scale(0.94); }
 /* "More below" on columns that scroll (marked by main.jsx). */
 .panel { position: relative; }
 .panel:has(.scroll.more)::after {
-  content: 'More below'; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+  content: 'More below'; position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%);
   font-size: var(--fs-1); font-weight: 600; color: var(--muted); background: var(--surface-2);
   padding: 3px 10px; border-radius: 999px; pointer-events: none;
 }
@@ -875,7 +880,7 @@ button[disabled] { opacity: 0.4; }
 .nd-card { padding: 10px; gap: 6px; min-height: 0; }
 .agenda.panel:has(.scroll.more)::after { content: none; }
 
-.now-tips { display: flex; gap: 6px; min-width: 0; overflow: hidden; }
+.now-tips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; max-width: 100%; } /* tips wrap rather than run into the forecast */
 .now-tips .now-advice { flex: 0 1 auto; min-width: 0; }
 .now { max-width: 420px; }
 

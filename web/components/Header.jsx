@@ -1,5 +1,5 @@
 import { fmtTime, fmtDate, fmtDay, weatherLabel, round } from '../lib.js'
-import { Gear } from './icons.jsx'
+import { Gear, TipIcon } from './icons.jsx'
 import { Updated } from './Updated.jsx'
 import { useState } from 'preact/hooks'
 import { WeatherIcon } from './WeatherIcon.jsx'
@@ -34,12 +34,11 @@ export function Header({ now, weather, hideWeather, location, onSettings }) {
             {(w.warnings?.[0] || w.advice?.[0]) && (
               <div class="now-tips">
                 {w.warnings?.[0]
-                  ? <span class="now-advice warn">⚠ {w.warnings[0].type} warning · level {w.warnings[0].level}</span>
-                  : w.advice.slice(0, 2).map((a) => <span class="now-advice" key={a.text}><span aria-hidden="true">{a.icon}</span> {a.text}</span>)}
+                  ? <span class="now-advice warn"><TipIcon emoji="⚠️" /> {w.warnings[0].type} warning · level {w.warnings[0].level}</span>
+                  : w.advice.slice(0, 2).map((a) => <span class="now-advice" key={a.text}><TipIcon emoji={a.icon} /> {a.text}</span>)}
               </div>
             )}
             <div class="now-facts">
-              {w.current.humidity != null && <span>Humidity {round(w.current.humidity)}%</span>}
               <span>Sunrise {fmtTime(w.daily[0]?.sunrise)}</span>
               <span>Sunset {fmtTime(w.daily[0]?.sunset)}</span>
               <Updated slot={weather} />
@@ -85,7 +84,7 @@ export function AdviceStrip({ weather }) {
     <div class="strip" aria-label="Before you go">
       {rest.map((r, i) => r.warn
         ? <span class={`chip warn level-${r.warn.level}`} key={`w${i}`} title={r.warn.text}>⚠ {r.warn.type} · level {r.warn.level}</span>
-        : <span class="chip advice" key={r.advice.text}><span aria-hidden="true">{r.advice.icon}</span> {r.advice.text}</span>)}
+        : <span class="chip advice" key={r.advice.text}><TipIcon emoji={r.advice.icon} /> {r.advice.text}</span>)}
     </div>
   )
 }

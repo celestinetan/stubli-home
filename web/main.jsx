@@ -167,7 +167,7 @@ function App() {
           : c === 'news' ? <News key={c} now={now} news={dash?.news} categories={dash?.settings?.newsCategories} onOpenCategory={setCategory} />
           : <WhatsOn key={c} now={now} events={dash?.events} local={dash?.local} place={place} eventSources={!!dash?.settings?.eventSources} onOpen={openStory} />)}
       </main>
-      {mods.news !== false && <Ticker news={dash?.news} categories={dash?.settings?.newsCategories} weather={mods.weather !== false ? dash?.weather : null} onOpen={openStory} />}
+      {mods.news !== false && <Ticker news={dash?.news} categories={dash?.settings?.newsCategories} onOpen={openStory} />}
       {!columns.includes('yourDay') && <MusicCard music={music} floating />}
       <HomeBar home={home} barScenes={dash?.settings?.barScenes} onMusic={() => setSheet('music')} onLights={() => setSheet('lights')}
         tablet={mods.tablet !== false && dash?.settings?.tabletMusic?.length ? <TabletMusicBar music={music} links={dash.settings.tabletMusic} /> : null} />

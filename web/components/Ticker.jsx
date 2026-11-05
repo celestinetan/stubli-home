@@ -2,25 +2,20 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { report } from '../lib.js'
 import { buildCards } from './News.jsx'
 
-// A slow headline ticker above the bottom bar: weather warnings and rain alerts first, then the
-// most important stories. It's the one thing on screen that keeps moving; touching it pauses it
+// A slow headline ticker above the bottom bar with the most important stories (the weather has
+// its own place at the top). It's the one thing on screen that keeps moving; touching it pauses it
 // so a headline can be tapped. It's moved frame by frame rather than by a CSS animation, because
 // Safari stops CSS animations when the iPad's Reduce Motion setting is on.
 
 const PX_PER_SECOND = 90
 
-export function Ticker({ news, categories, weather, onOpen }) {
+export function Ticker({ news, categories, onOpen }) {
   const [paused, setPaused] = useState(false)
   const timer = useRef(0)
   const track = useRef(null)
   const pausedRef = useRef(false)
   pausedRef.current = paused
   const items = useMemo(() => {
-    const w = weather?.data
-    const alerts = [
-      ...(w?.warnings ?? []).map((x) => ({ key: `w${x.type}`, kind: 'warn', text: `${x.type} warning · level ${x.level}` })),
-      ...(w?.rain ? [{ key: 'rain', kind: 'rain', text: w.rain.text }] : []),
-    ]
     // Headlines already on the news cards are skipped, so the ticker adds rather than repeats.
     const onCards = new Set(buildCards(news?.data?.stories, categories).flatMap((c) => c.stories.map((x) => x.id)))
     const hard = (news?.data?.stories ?? []).filter((s) => !s.kind || s.kind === 'news' || s.kind === 'analysis')
@@ -28,8 +23,8 @@ export function Ticker({ news, categories, weather, onOpen }) {
     // With only a few stories about, the ticker shows them all rather than run nearly empty.
     const stories = (fresh.length >= 4 ? fresh : hard).slice(0, 12)
       .map((s) => ({ key: s.id, kind: 'story', text: s.headline, story: s }))
-    return [...alerts, ...stories]
-  }, [news, weather, categories])
+    return stories
+  }, [news, categories])
 
   useEffect(() => {
     let x = 0, last = 0, raf = 0, moved = 0
@@ -61,8 +56,6 @@ export function Ticker({ news, categories, weather, onOpen }) {
   // The list is drawn twice so the loop joins up seamlessly.
   const run = (copy) => items.map((it) => (
     <span class={`tick tick-${it.kind}`} key={`${copy}${it.key}`} aria-hidden={copy ? 'true' : undefined}>
-      {it.kind === 'warn' && <span aria-hidden="true">⚠ </span>}
-      {it.kind === 'rain' && <span aria-hidden="true">☂ </span>}
       {it.story
         ? <button tabIndex={copy ? -1 : 0} onClick={() => onOpen(it.story, list)}>{it.text}</button>
         : it.text}

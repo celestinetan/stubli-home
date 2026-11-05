@@ -37,3 +37,18 @@ export const Power = (p) => <Svg {...p}><path d="M12 3v9" /><path d="M6.3 7.3a8 
 export const Music = (p) => <Svg {...p}><path d="M9 18V5l11-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="17" cy="16" r="3" /></Svg>
 export const External = (p) => <Svg {...p}><path d="M14 4h6v6M20 4l-9 9" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></Svg>
 export const Qr = (p) => <Svg {...p}><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2" /></Svg>
+
+// Line icons for the weather tips, matched from the emoji the weather code sends.
+const Umbrella = (p) => <Svg {...p}><path d="M3 12a9 9 0 0 1 18 0z" /><path d="M12 12v6.5a2 2 0 0 1-4 0" /></Svg>
+const Snow = (p) => <Svg {...p}><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9" /></Svg>
+const Shirt = (p) => <Svg {...p}><path d="M8 4 4 6.5 5.5 10 7.5 9V20h9V9l2 1L20 6.5 16 4c-.5 1.5-2 2.5-4 2.5S8.5 5.5 8 4z" /></Svg>
+const Coat = (p) => <Svg {...p}><path d="M8 4 4 7v13h4M16 4l4 3v13h-4M8 4l4 5 4-5M8 20V9M16 20V9M12 9v11" /></Svg>
+const Sun = (p) => <Svg {...p}><circle cx="12" cy="12" r="4" /><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></Svg>
+const Cold = (p) => <Svg {...p}><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z" /><path d="M12 11v6" /></Svg>
+const Wind = (p) => <Svg {...p}><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h8" /></Svg>
+const Alert = (p) => <Svg {...p}><path d="M12 4 2.5 20h19z" /><path d="M12 10v4.5M12 17.5v.01" /></Svg>
+const TIP = { '☂️': Umbrella, '☂': Umbrella, '❄️': Snow, '👕': Shirt, '🧥': Coat, '😎': Sun, '🕶️': Sun, '🧣': Cold, '💨': Wind, '⚠️': Alert }
+export function TipIcon({ emoji, size = 18 }) {
+  const I = TIP[emoji]
+  return I ? <span class="tip-icon" aria-hidden="true"><I size={size} /></span> : <span aria-hidden="true">{emoji}</span>
+}
