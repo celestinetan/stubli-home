@@ -2,6 +2,8 @@
 
 ## 1.1 – 4 November 2026
 
+- Your day sticks to your calendar and holidays: no rain line, and museum or market items stay in What's on.
+- News and What's on use text one step smaller, so more fits.
 - Dimming (when idle, and at night) now covers the whole screen evenly, background included, instead of only the panels.
 - Between songs the stick figures get on with other things: scrolling a phone, reading, sipping a coffee, stretching, waiting with hands on hips, checking the time or dozing off with a few z's. The music notes show only while music plays. In the demo, play and pause work, and `?pastime=read` (or phone, sleep, coffee, stretch, wait, watch) previews one.
 - Sonos uses far fewer requests (Sonos allows 20,000 a day): it checks every 30 seconds while music plays, every minute otherwise, and rereads idle speakers only when they change. If the limit is reached it pauses, keeps the last state on screen and says so.

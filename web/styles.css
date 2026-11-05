@@ -96,6 +96,10 @@ img { display: block; }
   padding: max(16px, env(safe-area-inset-top)) 20px max(14px, env(safe-area-inset-bottom));
 }
 
+/* News and What's on are read a little closer, so their text is one step smaller and more fits. */
+.panel.news, .panel.whatson { --fs-2: 0.9375rem; --fs-3: 1rem; --fs-4: 1.125rem; --fs-5: 1.25rem; }
+.panel.news > h2, .panel.whatson > h2 { font-size: 1rem; } /* headings match Your day */
+
 /* ---------- header: clock + weather ---------- */
 
 .header, .strip, .bar { flex: none; }

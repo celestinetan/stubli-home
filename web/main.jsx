@@ -163,7 +163,7 @@ function App() {
       )}
       <main class="main" style={{ '--cols': columns.length || 1, '--tpl': tpl }}>
         {columns.map((c) =>
-          c === 'yourDay' ? <Agenda key={c} now={now} calendar={dash?.calendar} local={dash?.local} weather={mods.weather !== false ? dash?.weather : null} place={place} extra={<MusicCard music={music} />} />
+          c === 'yourDay' ? <Agenda key={c} now={now} calendar={dash?.calendar} local={dash?.local} place={place} extra={<MusicCard music={music} />} />
           : c === 'news' ? <News key={c} now={now} news={dash?.news} categories={dash?.settings?.newsCategories} onOpenCategory={setCategory} />
           : <WhatsOn key={c} now={now} events={dash?.events} local={dash?.local} place={place} eventSources={!!dash?.settings?.eventSources} onOpen={openStory} />)}
       </main>

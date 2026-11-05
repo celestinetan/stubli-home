@@ -17,6 +17,7 @@ export interface LocalItem {
   nth?: number // 1 = only the first of those weekdays in the month
   city?: string // when it isn't in your own city
   free?: boolean
+  holiday?: boolean // public and school holidays, shown in Your day
 }
 
 const API = 'https://openholidaysapi.org'
@@ -43,14 +44,14 @@ export async function fetchLocal() {
   const name = (h: any) => h.name?.find((n: any) => n.language === 'EN')?.text ?? h.name?.[0]?.text ?? 'Holiday'
 
   const holidays: LocalItem[] = pub.filter(inArea).map((h) => ({
-    title: name(h), note: 'Public holiday — shops and offices mostly closed', icon: '🎉', from: h.startDate, to: h.endDate,
+    holiday: true, title: name(h), note: 'Public holiday — shops and offices mostly closed', icon: '🎉', from: h.startDate, to: h.endDate,
   }))
   const seen = new Set<string>()
   const schools: LocalItem[] = school.filter(inArea).flatMap((h) => {
     const key = `${name(h)}|${h.startDate}|${h.endDate}`
     if (seen.has(key)) return []
     seen.add(key)
-    return [{ title: `School holidays: ${name(h)}`, note: `Until ${h.endDate}`, icon: '🏫', from: h.startDate, to: h.endDate }]
+    return [{ holiday: true, title: `School holidays: ${name(h)}`, note: `Until ${h.endDate}`, icon: '🏫', from: h.startDate, to: h.endDate }]
   })
   return { items: [...holidays, ...schools, ...curated] }
 }

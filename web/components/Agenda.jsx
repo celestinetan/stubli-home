@@ -4,16 +4,15 @@ import { Updated } from './Updated.jsx'
 const DAY = 86_400_000
 const MIN = 60_000
 
-// Your day, in one visual language: a short line for what the timeline can't show (rain, a
-// holiday), today's all-day items as pills, the rest of today as a timeline from now (events as
+// Your day, in one visual language: today's all-day items and holidays as pills, the rest of today as a timeline from now (events as
 // blocks tinted in their calendar's colour, free time as space), then tomorrow in the same style.
 // Only two days, so each event has room for its time, length and place.
-export function Agenda({ now, calendar, local, weather, place = '', extra }) {
+export function Agenda({ now, calendar, local, place = '', extra }) {
   const c = calendar?.data
   const today = isoDay(now)
   const items = local?.data?.items ?? []
-  // Holidays, markets and your own non-free items; free ones are listed in What's on.
-  const localOn = (iso, wd) => items.filter((it) => !it.free && activeOn(it, iso, wd))
+  // Only public and school holidays; museums, markets and other outings are in What's on.
+  const localOn = (iso, wd) => items.filter((it) => (it.holiday ?? !it.place) && activeOn(it, iso, wd))
 
   let body
   if (!c) body = <p class="muted">{calendar?.error ? 'Your calendar didn\'t load. Check the link in Settings, or wait a moment.' : 'Loading calendar…'}</p>
@@ -50,18 +49,11 @@ export function Agenda({ now, calendar, local, weather, place = '', extra }) {
     <section class="panel agenda">
       <h2>Your day <Updated slot={calendar} /></h2>
       <div class="agenda-body">
-        <TodayLine weather={weather?.data} />
         {body}
       </div>
       {extra}
     </section>
   )
-}
-
-// Only what the timeline can't show: rain to come, or showers later.
-function TodayLine({ weather }) {
-  const text = weather?.rain?.text ?? (weather?.daily?.[0]?.pop >= 50 ? 'Showers likely later' : null)
-  return text ? <p class="today-line">{text}</p> : null
 }
 
 const hm = (ms) => {
