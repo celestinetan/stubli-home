@@ -60,7 +60,14 @@ export const venuesNear = () => VENUES.filter(near)
 // Party, Drag, Panel, Community Event; only concerts and performances count here (plus untyped
 // events with "concert" or "live in" in the title). The price is a suggested one; 0 means free.
 async function zentralwaescherei(): Promise<EventItem[]> {
-  const q = new URLSearchParams({ 'filters[end_datetime][$gt]': new Date().toISOString(), 'pagination[pageSize]': '100', locale: 'en', sort: 'start_datetime:asc', 'populate[0]': 'eventtype_rels' })
+  // Only the days the dashboard shows, and only the fields it uses: the full list is large.
+  const until = new Date(Date.now() + (config.events.daysAhead + 1) * 86400_000).toISOString()
+  const q = new URLSearchParams({
+    'filters[end_datetime][$gt]': new Date().toISOString(), 'filters[start_datetime][$lt]': until,
+    'pagination[pageSize]': '50', locale: 'en', sort: 'start_datetime:asc',
+    'fields[0]': 'title', 'fields[1]': 'start_datetime', 'fields[2]': 'description', 'fields[3]': 'price', 'fields[4]': 'documentId',
+    'populate[eventtype_rels][fields][0]': 'name',
+  })
   const { data } = await (await get(`https://cms.zentralwaescherei.space/api/events?${q}`)).json() as { data: any[] }
   const time = new Intl.DateTimeFormat('en-GB', { timeZone: config.timezone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
   return (data ?? []).flatMap((e): EventItem[] => {

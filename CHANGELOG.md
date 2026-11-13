@@ -2,6 +2,7 @@
 
 ## 1.1 – 4 November 2026
 
+- Zentralwäscherei is asked only for the days What's on shows, and only the fields it uses, so each update downloads far less.
 - Audit fixes: "More below" no longer sits on top of text; the news strip carries only news (the weather has its place at the top); free time in Your day is rounded ("Free for 6 h"); free events in What's on have a soft tint and a "Free" label instead of a green border; weather tips use line icons and get a little more room so they fit on one line; the header shows sunrise and sunset a little larger (humidity is gone); "Up next" sits right under the music controls.
 - The temperature line under the hourly forecast is gone; the hours and their temperatures say it already.
 - Your day sticks to your calendar and holidays: no rain line, and museum or market items stay in What's on.
